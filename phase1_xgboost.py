@@ -6,14 +6,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     classification_report,
     roc_auc_score,
-    precision_recall_curve
+    precision_recall_curve,
+    precision_score,
+    recall_score,
+    f1_score
 )
 from xgboost import XGBClassifier
 from sklearn.calibration import CalibratedClassifierCV
 
-
 # ====================================
-# Phase 1 – XGBoost Model (Clean)
+# Phase 1 – Calibrated XGBoost
 # ====================================
 
 # 1️⃣ Load dataset
@@ -28,17 +30,16 @@ y = df["Class"]
 
 # 4️⃣ Stratified split
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
+    X, y,
     test_size=0.2,
     random_state=42,
     stratify=y
 )
 
-# 5️⃣ Compute imbalance ratio
+# 5️⃣ Class imbalance handling
 scale_pos_weight = (len(y_train) - y_train.sum()) / y_train.sum()
 
-# 6️⃣ Train base XGBoost
+# 6️⃣ Base XGBoost model
 base_model = XGBClassifier(
     n_estimators=300,
     max_depth=4,
@@ -47,10 +48,10 @@ base_model = XGBClassifier(
     eval_metric="logloss",
     random_state=42,
     tree_method="hist",
-    device="cuda"
+    device="cuda"   # GPU active
 )
 
-# 7️⃣ Calibrate using Isotonic Regression
+# 7️⃣ Isotonic Calibration
 model = CalibratedClassifierCV(
     base_model,
     method="isotonic",
@@ -59,24 +60,18 @@ model = CalibratedClassifierCV(
 
 model.fit(X_train, y_train)
 
-# 8️⃣ Predict calibrated probabilities
-y_prob = model.predict_proba(X_test)[:, 1]
-
-
-model.fit(X_train, y_train)
-
-# 7️⃣ Predict probabilities
+# 8️⃣ Calibrated probabilities
 y_prob = model.predict_proba(X_test)[:, 1]
 
 # ====================================
-# 🔹 Default Threshold Evaluation (0.5)
+# 🔹 Baseline Evaluation (Threshold = 0.5)
 # ====================================
 
-y_pred_default = (y_prob >= 0.5).astype(int)
-
-print("===== XGBOOST (Threshold = 0.5) =====")
+print("===== CALIBRATED XGBOOST (0.5) =====")
 print("ROC-AUC:", roc_auc_score(y_test, y_prob))
-print(classification_report(y_test, y_pred_default))
+
+y_pred_05 = (y_prob >= 0.5).astype(int)
+print(classification_report(y_test, y_pred_05))
 
 # ====================================
 # 🔹 Precision-Recall Curve
@@ -88,11 +83,14 @@ plt.figure(figsize=(8,6))
 plt.plot(recall, precision)
 plt.xlabel("Recall")
 plt.ylabel("Precision")
-plt.title("Precision-Recall Curve (XGBoost)")
+plt.title("Precision-Recall Curve (Calibrated XGBoost)")
 plt.grid(True)
 plt.show()
 
-# Find best threshold where recall >= 0.85 and precision is maximized
+# ====================================
+# 🔹 Final Selected Threshold (Recall ≥ 0.85 Optimized)
+# ====================================
+
 best_t = None
 best_p = 0
 best_r = 0
@@ -103,42 +101,33 @@ for p, r, t in zip(precision, recall, thresholds):
         best_r = r
         best_t = t
 
-print("\nBest threshold with Recall >= 0.85")
+print("\n===== FINAL OPERATING POINT =====")
 print("Threshold:", best_t)
 print("Precision:", best_p)
 print("Recall:", best_r)
-
-
-# ====================================
-# 🔹 Controlled Recall Target (>= 0.90)
-# ====================================
-
-for p, r, t in zip(precision, recall, thresholds):
-    if r >= 0.90:
-        print("\nThreshold achieving Recall >= 0.90")
-        print("Threshold:", t)
-        print("Precision:", p)
-        print("Recall:", r)
-        break
+print("F1:", 2 * (best_p * best_r) / (best_p + best_r))
 
 # ====================================
-# 🔹 Tier Analysis (0.8 / 0.3 split)
+# 🔹 Final 3-Tier Risk System
 # ====================================
 
-high_risk = y_prob >= 0.8
-medium_risk = (y_prob >= 0.3) & (y_prob < 0.8)
-low_risk = y_prob < 0.3
+T_block = 0.8
+T_review = best_t
 
-print("\n===== Tier Analysis =====")
+auto_block = y_prob >= T_block
+manual_review = (y_prob >= T_review) & (y_prob < T_block)
+auto_approve = y_prob < T_review
 
-print("\nHigh Risk (>=0.8)")
-print("Count:", high_risk.sum())
-print("Fraud:", y_test[high_risk].sum())
+print("\n===== FINAL 3-TIER SYSTEM =====")
 
-print("\nMedium Risk (0.3–0.8)")
-print("Count:", medium_risk.sum())
-print("Fraud:", y_test[medium_risk].sum())
+print("\nAuto Block")
+print("Count:", auto_block.sum())
+print("Fraud:", y_test[auto_block].sum())
 
-print("\nLow Risk (<0.3)")
-print("Count:", low_risk.sum())
-print("Fraud:", y_test[low_risk].sum())
+print("\nManual Review")
+print("Count:", manual_review.sum())
+print("Fraud:", y_test[manual_review].sum())
+
+print("\nAuto Approve")
+print("Count:", auto_approve.sum())
+print("Fraud:", y_test[auto_approve].sum())

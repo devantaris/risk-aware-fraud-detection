@@ -51,7 +51,7 @@ for seed in range(n_models):
         eval_metric="logloss",
         random_state=seed,
         tree_method="hist",
-        device="cuda"
+        device="cpu"
     )
 
     model = CalibratedClassifierCV(
@@ -83,7 +83,7 @@ print(pd.Series(uncertainty).describe())
 # -----------------------------
 T_block = 0.8
 T_review = 0.1164
-U_threshold = 0.02   # Balanced configuration
+U_threshold = 0.015   # Balanced configuration
 
 decision = []
 
@@ -125,3 +125,51 @@ print(results["decision"].value_counts())
 
 print("\n===== FRAUD BY DECISION =====")
 print(results.groupby("decision")["true_label"].sum())
+
+
+# ====================================
+# 🔹 Business Cost Simulation
+# ====================================
+
+C_FN = 5000
+C_FP_block = 200
+C_manual = 50
+C_step_up = 10
+C_escalate = 100
+
+total_cost = 0
+
+for _, row in results.iterrows():
+
+    decision = row["decision"]
+    true = row["true_label"]
+
+    # AUTO BLOCK
+    if decision == "AUTO_BLOCK":
+        if true == 0:
+            total_cost += C_FP_block
+
+    # AUTO APPROVE
+    elif decision == "AUTO_APPROVE":
+        if true == 1:
+            total_cost += C_FN
+
+    # MANUAL REVIEW
+    elif decision == "MANUAL_REVIEW":
+        total_cost += C_manual
+
+    # STEP UP
+    elif decision == "STEP_UP_AUTH":
+        total_cost += C_step_up
+
+    # ESCALATE
+    elif decision == "ESCALATE_INVEST":
+        total_cost += C_escalate
+
+    # ABSTAIN (treated as manual)
+    elif decision == "ABSTAIN":
+        total_cost += C_manual
+
+print("\n===== TOTAL SYSTEM COST =====")
+print("Total Cost:", total_cost)
+print("Average Cost per Transaction:", total_cost / len(results))

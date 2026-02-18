@@ -42,7 +42,7 @@ plt.title("Transaction Amount Distribution (All)")
 plt.show()
 
 #isolate behaviour
-'''print("\n=== Amount Stats by Class ===")
+print("\n=== Amount Stats by Class ===")
 print(df.groupby("Class")["Amount"].describe())
 
 plt.figure(figsize=(8,5))
@@ -50,16 +50,16 @@ sns.boxplot(x="Class", y="Amount", data=df)
 plt.ylim(0, 1000)  # limit for visibility
 plt.title("Amount Distribution by Class (Zoomed)")
 plt.show()
-'''
 
-'''print("\n=== Time Statistics ===")
+
+print("\n=== Time Statistics ===")
 print(df["Time"].describe())
 
 plt.figure(figsize=(8,5))
 sns.histplot(data=df, x="Time", hue="Class", bins=50, element="step")
 plt.title("Transaction Time Distribution by Class")
 plt.show()
-'''
+
 
 #hour of day feature 
 df["hour"] = (df["Time"] / 3600) % 24

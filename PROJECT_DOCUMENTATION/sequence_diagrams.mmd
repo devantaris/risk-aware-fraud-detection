@@ -5,7 +5,7 @@
 sequenceDiagram
     autonumber
 
-    participant Client as Client / Streamlit UI
+    participant Client as Client / Glass Lens / Streamlit UI
     participant FastAPI as FastAPI (api/main.py)
     participant Pydantic as TransactionInput Validator
     participant Engine as DecisionEngine
@@ -111,6 +111,49 @@ sequenceDiagram
     else No match in 500 attempts
         Streamlit-->>-User: Warning: "Could not generate example"
     end
+
+%% ============================================================
+%% SEQUENCE DIAGRAM 2b: Glass Lens Frontend Flow
+%% ============================================================
+
+sequenceDiagram
+    autonumber
+
+    participant User as End User (Browser)
+    participant GlassLens as Glass Lens Frontend (frontend-glass/)
+    participant Vite as Vite Dev Proxy (:5173/api → :8000)
+    participant API as FastAPI API (localhost:8000)
+
+    User->>+GlassLens: Click "Generate Random" or preset button
+
+    alt Preset scenario (e.g., "Safe Transaction")
+        loop Up to 300 attempts
+            GlassLens->>GlassLens: Generate tuned feature vector (31 floats)
+            GlassLens->>+Vite: POST /api/predict { features: [...] }
+            Vite->>+API: POST /predict (proxied)
+            API-->>-Vite: JSON response
+            Vite-->>-GlassLens: JSON response
+            alt response.decision == target
+                Note over GlassLens: Match found — break loop
+            else No match
+                Note over GlassLens: Retry with new features
+            end
+        end
+    else Random transaction
+        GlassLens->>GlassLens: generateRandomTransaction() → 31 floats
+        GlassLens->>+Vite: POST /api/predict { features: [...] }
+        Vite->>+API: POST /predict (proxied)
+        API-->>-Vite: JSON response
+        Vite-->>-GlassLens: JSON response
+    end
+
+    GlassLens->>GlassLens: animateLayers() — sequential reveal
+    GlassLens-->>User: Layer 1: Ensemble Risk (progress bar + tier)
+    GlassLens-->>User: Layer 2: Uncertainty (ensemble bars + confidence)
+    GlassLens-->>User: Layer 3: Novelty (anomaly ruler + flag)
+    GlassLens-->>User: Verdict Card (decision + rule + cost breakdown)
+    GlassLens->>GlassLens: plotTransaction() → update Decision Landscape canvas
+    GlassLens->>GlassLens: addToHistory() → update sidebar list
 
 %% ============================================================
 %% SEQUENCE DIAGRAM 3: Model Training / Research Pipeline Flow

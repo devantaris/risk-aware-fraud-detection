@@ -28,8 +28,19 @@ Risk Aware Fraud Transaction Decision System/
 │   ├── models/                              [empty directory]
 │   └── test_engine.py                       1,225 bytes
 │
-├── frontend/
+├── frontend/                                [Streamlit demo frontend]
 │   └── app.py                               5,637 bytes
+│
+├── frontend-glass/                          [Glass Lens – Vite frontend]
+│   ├── package.json                         489 bytes
+│   ├── package-lock.json                    (auto-generated)
+│   ├── vite.config.js                       288 bytes
+│   ├── index.html                           11,800 bytes
+│   ├── style.css                            17,230 bytes
+│   ├── main.js                              15,080 bytes
+│   ├── landscape.js                         7,000 bytes
+│   ├── node_modules/                        [gitignored – installed deps]
+│   └── dist/                                [gitignored – production build]
 │
 ├── phase0_cleaning.py                       1,043 bytes
 ├── phase0_exploration.py                    2,538 bytes

@@ -32,6 +32,7 @@
 22. [Technical Debt](#22-technical-debt)
 23. [Inferred Design Decisions](#23-inferred-design-decisions)
 24. [Image Placeholders](#24-image-placeholders)
+25. [Glass Lens Frontend](#25-glass-lens-frontend)
 
 ---
 
@@ -855,7 +856,59 @@ See: `PROJECT_DOCUMENTATION/dependency_graph.mmd`
 
 ---
 
+# 25. GLASS LENS FRONTEND
+
+A new glassmorphism-styled frontend that visualizes each transaction as a layered "X-Ray" through all three detection axes.
+
+### Location
+`frontend-glass/` — standalone Vite project, decoupled from the existing Streamlit demo.
+
+### Tech Stack
+- **Build:** Vite 6.x (dev server + production bundler)
+- **Language:** Vanilla JavaScript (ES modules)
+- **Styling:** Vanilla CSS with custom properties for theming
+- **Canvas:** HTML5 Canvas 2D API for the Decision Landscape
+- **API:** Browser Fetch API, proxied through Vite (`/api/predict` → `localhost:8000/predict`)
+
+### Key Files
+| File | Purpose |
+|---|---|
+| `index.html` | 3-panel layout: Controls, X-Ray Analysis, Decision Landscape |
+| `style.css` | Complete design system — glassmorphism, dark/light themes, animations |
+| `main.js` | API integration, sequential layer rendering, presets, history |
+| `landscape.js` | Canvas 2D: Risk×Uncertainty decision region topology with transaction dots |
+| `vite.config.js` | Dev proxy config forwarding `/api/*` → `localhost:8000/*` |
+
+### UI Components
+1. **Header:** Logo, API health indicator (polling every 15s), dark/light toggle
+2. **Controls Panel (left):** Generate Random button, 5 preset scenario buttons, transaction history list
+3. **Analysis Panel (center):** Sequential reveal of 4 layer cards:
+   - Layer 1: **Ensemble Risk** — score, progress bar, tier badge, explanation
+   - Layer 2: **Uncertainty** — std dev, confidence badge, simulated ensemble bar chart
+   - Layer 3: **Novelty** — anomaly score, flag badge, anomaly ruler
+   - Verdict: **Decision** — icon, label, routing rule, cost breakdown
+4. **Landscape Panel (right):** 2D canvas plot of Risk (x-axis) × Uncertainty (y-axis) with color-coded decision regions matching exact engine thresholds
+
+### How It Connects
+- All communication with the backend is via HTTP POST to `/api/predict` (same endpoint as Streamlit)
+- In development, Vite's proxy avoids CORS by forwarding `/api/*` requests to `localhost:8000`
+- Feature vectors are generated client-side (31 floats: Time + 29 PCA + Amount)
+- No shared code with the Streamlit frontend — fully independent
+
+### How to Run
+```bash
+# Terminal 1: Backend
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+# Terminal 2: Glass Lens Frontend
+cd frontend-glass
+npm install   # first time only
+npm run dev   # → http://localhost:5173
+```
+
+---
+
 # END OF PROJECT BIBLE
-### Total source files analyzed: 13 Python files + 4 config/infra files
-### Total lines of source code analyzed: ~1,545 lines
-### Zero files modified. Zero characters changed.
+### Total source files analyzed: 13 Python files + 4 config/infra files + 4 JavaScript/HTML/CSS files
+### Total lines of source code analyzed: ~5,000+ lines
+### Last updated: 2026-02-21T21:18:00+05:30

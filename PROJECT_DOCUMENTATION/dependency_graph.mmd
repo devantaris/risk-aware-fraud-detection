@@ -9,6 +9,8 @@ graph TB
         LOGGER["backend/config/logger.py"]
         TEST_ENGINE["backend/test_engine.py"]
         FRONTEND_APP["frontend/app.py"]
+        GLASS_MAIN["frontend-glass/main.js"]
+        GLASS_LANDSCAPE["frontend-glass/landscape.js"]
         
         P0C["phase0_cleaning.py"]
         P0E["phase0_exploration.py"]
@@ -40,9 +42,15 @@ graph TB
             SHAP_PKG["shap"]
         end
 
-        subgraph FRONTEND_DEPS["Frontend Dependencies (installed in venv)"]
+        subgraph FRONTEND_DEPS["Frontend Dependencies"]
             STREAMLIT_PKG["streamlit"]
             REQUESTS_PKG["requests"]
+        end
+
+        subgraph GLASS_DEPS["Glass Lens Frontend Dependencies (npm)"]
+            VITE_PKG["vite (dev server + bundler)"]
+            FETCH_API["Fetch API (browser built-in)"]
+            CANVAS_API["Canvas 2D API (browser built-in)"]
         end
     end
 
@@ -89,6 +97,14 @@ graph TB
     FRONTEND_APP -->|"import streamlit as st"| STREAMLIT_PKG
     FRONTEND_APP -->|"import requests"| REQUESTS_PKG
     FRONTEND_APP -->|"import numpy as np"| NUMPY_PKG
+
+    %% ==============================
+    %% frontend-glass/ dependencies
+    %% ==============================
+    GLASS_MAIN -->|"import { initLandscape }"| GLASS_LANDSCAPE
+    GLASS_MAIN -->|"fetch('/api/predict')"| FETCH_API
+    GLASS_LANDSCAPE -->|"canvas.getContext('2d')"| CANVAS_API
+    GLASS_MAIN -->|"dev server + build"| VITE_PKG
 
     %% ==============================
     %% Research script dependencies
@@ -172,3 +188,5 @@ graph TB
     %% 3. logger.py is defined but NOT imported by any production module
     %%    (DEAD MODULE – see PROJECT_BIBLE.md)
     %% 4. backend/models/ directory exists but is EMPTY (placeholder)
+    %% 5. frontend-glass/ couples to api/main.py only via HTTP (loose coupling,
+    %%    routed through Vite dev proxy in development)

@@ -3,6 +3,7 @@ graph TB
 
     subgraph CLIENT_LAYER["Client / UI Layer"]
         direction LR
+        GLASS_LENS["Glass Lens Frontend<br/>(frontend-glass/)<br/>Vite + Vanilla JS<br/>Port: 5173"]
         STREAMLIT["Streamlit Frontend<br/>(frontend/app.py)<br/>Port: 8501"]
         SWAGGER["Swagger UI<br/>/docs"]
         EXTERNAL_CLIENT["External HTTP Client"]
@@ -78,6 +79,7 @@ graph TB
     end
 
     %% Client → API connections
+    GLASS_LENS -->|"HTTP POST /predict<br/>(via Vite proxy /api)"| FASTAPI
     STREAMLIT -->|"HTTP POST /predict<br/>(JSON)"| FASTAPI
     SWAGGER -->|"HTTP"| FASTAPI
     EXTERNAL_CLIENT -->|"HTTP"| FASTAPI

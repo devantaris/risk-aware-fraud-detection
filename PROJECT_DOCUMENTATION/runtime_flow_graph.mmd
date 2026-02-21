@@ -4,7 +4,8 @@ graph TB
     subgraph ENTRY_POINTS["System Entry Points"]
         EP1["uvicorn api.main:app<br/>(Production Entry)"]
         EP2["python backend/test_engine.py<br/>(Smoke Test Entry)"]
-        EP3["streamlit run frontend/app.py<br/>(UI Entry)"]
+        EP3["streamlit run frontend/app.py<br/>(Streamlit UI Entry)"]
+        EP3b["npm run dev (frontend-glass/)<br/>(Glass Lens UI Entry)"]
         EP4["python phase0_cleaning.py<br/>(Research Entry)"]
         EP5["python phase0_exploration.py<br/>(Research Entry)"]
         EP6["python phase1_modeling.py<br/>(Research Entry)"]
@@ -107,6 +108,24 @@ graph TB
         ST16["Right panel: Render all sections"]
     end
 
+    subgraph GLASS_LENS_FLOW["Glass Lens Runtime Flow"]
+        GL1["Vite dev server starts on :5173"]
+        GL2["Browser loads index.html"]
+        GL3["main.js: init() called on DOMContentLoaded"]
+        GL4["initLandscape(canvas) – draw decision regions"]
+        GL5["checkHealth() – GET /api/ via proxy"]
+        GL6["User clicks button (generate/preset)"]
+        GL7["generateRandomTransaction() or PRESETS[name]()"]
+        GL8["Assemble 31-element feature array"]
+        GL9["callAPI(features) – POST /api/predict via proxy"]
+        GL10["Vite proxy: /api/predict → localhost:8000/predict"]
+        GL11["Parse JSON response"]
+        GL12["animateLayers() – sequential reveal (200ms stagger)"]
+        GL13["renderAnalysis() – populate all layer cards"]
+        GL14["plotTransaction() – update canvas with new dot"]
+        GL15["addToHistory() – update sidebar list"]
+    end
+
     %% Startup flow
     EP1 --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9 --> S10
 
@@ -163,3 +182,10 @@ graph TB
     ST7 --> ST8 --> ST9 --> ST10 --> ST11 --> ST12 --> ST13 --> ST14
     ST14 -->|"No match"| ST7
     ST14 -->|"Match"| ST15 --> ST16
+
+    %% Glass Lens flow
+    EP3b --> GL1 --> GL2 --> GL3 --> GL4 --> GL5
+    GL5 -.->|"periodic 15s"| GL5
+    GL3 --> GL6 --> GL7 --> GL8 --> GL9 --> GL10 --> GL11
+    GL11 --> GL12 --> GL13
+    GL13 --> GL14 --> GL15

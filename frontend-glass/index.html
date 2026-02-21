@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glass Lens — Risk-Aware Fraud Decision System</title>
+  <meta name="description" content="Interactive transaction x-ray interface for a multi-axis fraud decision intelligence engine." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="header-left">
+      <h1 class="logo">
+        <span class="logo-icon">◈</span> Glass Lens
+      </h1>
+      <p class="tagline">Risk × Uncertainty × Novelty — Transaction X-Ray</p>
+    </div>
+    <div class="header-right">
+      <div class="status-indicator" id="apiStatus">
+        <span class="status-dot"></span>
+        <span class="status-text">Checking API…</span>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+        <span class="theme-icon">☀</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <main class="app-main">
+
+    <!-- LEFT PANEL — Controls -->
+    <aside class="panel panel-controls">
+      <div class="panel-section">
+        <h2 class="panel-title">Transaction Input</h2>
+
+        <button class="btn btn-primary btn-generate" id="btnGenerate">
+          <span class="btn-icon">⚡</span> Generate Random
+        </button>
+
+        <div class="divider"><span>or try a preset</span></div>
+
+        <div class="preset-grid">
+          <button class="btn btn-preset" data-preset="safe" id="presetSafe">
+            <span class="preset-dot dot-approve"></span>
+            Safe Transaction
+          </button>
+          <button class="btn btn-preset" data-preset="medium" id="presetMedium">
+            <span class="preset-dot dot-stepup"></span>
+            Medium Risk
+          </button>
+          <button class="btn btn-preset" data-preset="uncertain" id="presetUncertain">
+            <span class="preset-dot dot-abstain"></span>
+            Uncertain Edge
+          </button>
+          <button class="btn btn-preset" data-preset="novel" id="presetNovel">
+            <span class="preset-dot dot-escalate"></span>
+            Novel Pattern
+          </button>
+          <button class="btn btn-preset" data-preset="fraud" id="presetFraud">
+            <span class="preset-dot dot-decline"></span>
+            High-Risk Fraud
+          </button>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="panel-section">
+        <h2 class="panel-title">History</h2>
+        <div class="history-list" id="historyList">
+          <p class="history-empty">No transactions yet</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER PANEL — Layered X-Ray -->
+    <section class="panel panel-analysis" id="analysisPanel">
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">◇</div>
+        <h2>Transaction X-Ray</h2>
+        <p>Generate or select a transaction to see it pass through<br/>the three detection layers.</p>
+        <div class="empty-layers">
+          <span class="empty-layer">Ensemble Risk</span>
+          <span class="empty-arrow">→</span>
+          <span class="empty-layer">Uncertainty</span>
+          <span class="empty-arrow">→</span>
+          <span class="empty-layer">Novelty</span>
+          <span class="empty-arrow">→</span>
+          <span class="empty-layer">Decision</span>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state hidden" id="loadingState">
+        <div class="loading-spinner"></div>
+        <p>Analyzing transaction…</p>
+      </div>
+
+      <!-- Analysis Cards Container -->
+      <div class="layers-container hidden" id="layersContainer">
+
+        <!-- Transaction Summary Bar -->
+        <div class="txn-summary glass-card" id="txnSummary">
+          <div class="txn-summary-item">
+            <span class="txn-label">Amount</span>
+            <span class="txn-value" id="txnAmount">—</span>
+          </div>
+          <div class="txn-summary-item">
+            <span class="txn-label">Time</span>
+            <span class="txn-value" id="txnTime">—</span>
+          </div>
+          <div class="txn-summary-item">
+            <span class="txn-label">Features</span>
+            <span class="txn-value">31 dimensions</span>
+          </div>
+        </div>
+
+        <!-- LAYER 1: Ensemble Risk -->
+        <div class="layer-card glass-card layer-hidden" id="layer1">
+          <div class="layer-header">
+            <span class="layer-badge">LAYER 1</span>
+            <span class="layer-name">Ensemble Risk Assessment</span>
+          </div>
+          <div class="layer-body">
+            <div class="metric-row">
+              <div class="metric-main">
+                <span class="metric-label">Risk Score</span>
+                <span class="metric-value mono" id="riskScore">—</span>
+              </div>
+              <div class="tier-badge" id="tierBadge">—</div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="riskProgress"></div>
+              <div class="progress-markers">
+                <span class="marker" style="left:30%;" data-label="0.30"></span>
+                <span class="marker" style="left:60%;" data-label="0.60"></span>
+                <span class="marker" style="left:80%;" data-label="0.80"></span>
+              </div>
+            </div>
+            <p class="layer-explanation" id="riskExplanation">—</p>
+          </div>
+        </div>
+
+        <!-- LAYER 2: Uncertainty -->
+        <div class="layer-card glass-card layer-hidden" id="layer2">
+          <div class="layer-header">
+            <span class="layer-badge">LAYER 2</span>
+            <span class="layer-name">Predictive Uncertainty</span>
+          </div>
+          <div class="layer-body">
+            <div class="metric-row">
+              <div class="metric-main">
+                <span class="metric-label">Ensemble Std Dev</span>
+                <span class="metric-value mono" id="uncertaintyValue">—</span>
+              </div>
+              <div class="confidence-badge" id="confidenceBadge">—</div>
+            </div>
+            <div class="ensemble-bars" id="ensembleBars">
+              <div class="ebar" id="ebar0"></div>
+              <div class="ebar" id="ebar1"></div>
+              <div class="ebar" id="ebar2"></div>
+              <div class="ebar" id="ebar3"></div>
+              <div class="ebar" id="ebar4"></div>
+            </div>
+            <div class="ensemble-labels">
+              <span>M1</span><span>M2</span><span>M3</span><span>M4</span><span>M5</span>
+            </div>
+            <p class="layer-explanation" id="uncertaintyExplanation">—</p>
+          </div>
+        </div>
+
+        <!-- LAYER 3: Novelty -->
+        <div class="layer-card glass-card layer-hidden" id="layer3">
+          <div class="layer-header">
+            <span class="layer-badge">LAYER 3</span>
+            <span class="layer-name">Novelty Detection</span>
+          </div>
+          <div class="layer-body">
+            <div class="metric-row">
+              <div class="metric-main">
+                <span class="metric-label">Anomaly Score</span>
+                <span class="metric-value mono" id="anomalyScore">—</span>
+              </div>
+              <div class="novelty-badge" id="noveltyBadge">—</div>
+            </div>
+            <div class="anomaly-ruler">
+              <div class="anomaly-track">
+                <div class="anomaly-zone anomaly-zone-novel"></div>
+                <div class="anomaly-zone anomaly-zone-normal"></div>
+                <div class="anomaly-threshold-line" style="left:46%;"></div>
+                <div class="anomaly-dot" id="anomalyDot"></div>
+              </div>
+              <div class="anomaly-labels">
+                <span>← More Anomalous</span>
+                <span>Threshold (−0.08)</span>
+                <span>More Normal →</span>
+              </div>
+            </div>
+            <p class="layer-explanation" id="noveltyExplanation">—</p>
+          </div>
+        </div>
+
+        <!-- Flow Arrow -->
+        <div class="flow-connector layer-hidden" id="flowConnector">
+          <div class="flow-line"></div>
+          <div class="flow-label">routing decision</div>
+          <div class="flow-line"></div>
+        </div>
+
+        <!-- VERDICT CARD -->
+        <div class="verdict-card glass-card layer-hidden" id="verdictCard">
+          <div class="verdict-icon" id="verdictIcon">✓</div>
+          <div class="verdict-decision" id="verdictDecision">—</div>
+          <p class="verdict-explanation" id="verdictExplanation">—</p>
+          <div class="verdict-rule" id="verdictRule">—</div>
+
+          <!-- Cost Breakdown -->
+          <div class="cost-breakdown">
+            <h3 class="cost-title">Cost Simulation</h3>
+            <div class="cost-grid">
+              <div class="cost-item">
+                <span class="cost-label">Expected Loss</span>
+                <span class="cost-value mono" id="costLoss">—</span>
+              </div>
+              <div class="cost-item">
+                <span class="cost-label">Review Cost</span>
+                <span class="cost-value mono" id="costReview">—</span>
+              </div>
+              <div class="cost-item cost-item-total">
+                <span class="cost-label">Net Utility</span>
+                <span class="cost-value mono" id="costUtility">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL — Decision Landscape -->
+    <aside class="panel panel-landscape">
+      <h2 class="panel-title">Decision Landscape</h2>
+      <p class="panel-subtitle">Risk × Uncertainty routing regions</p>
+      <div class="canvas-wrapper">
+        <canvas id="landscapeCanvas" width="320" height="300"></canvas>
+      </div>
+      <div class="landscape-legend">
+        <span class="legend-item"><span class="legend-dot dot-approve"></span>Approve</span>
+        <span class="legend-item"><span class="legend-dot dot-abstain"></span>Abstain</span>
+        <span class="legend-item"><span class="legend-dot dot-stepup"></span>Step-Up</span>
+        <span class="legend-item"><span class="legend-dot dot-escalate"></span>Escalate</span>
+        <span class="legend-item"><span class="legend-dot dot-decline"></span>Decline</span>
+      </div>
+
+      <!-- Meta Info -->
+      <div class="meta-section" id="metaSection">
+        <h3 class="meta-title">Engine Metadata</h3>
+        <div class="meta-grid" id="metaGrid">
+          <span class="meta-label">Model</span>
+          <span class="meta-value mono" id="metaModel">—</span>
+          <span class="meta-label">Method</span>
+          <span class="meta-value mono" id="metaMethod">—</span>
+          <span class="meta-label">Timestamp</span>
+          <span class="meta-value mono" id="metaTimestamp">—</span>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>

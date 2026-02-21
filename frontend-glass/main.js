@@ -38,42 +38,60 @@ const DECISION_META = {
     },
 };
 
-// ---- Preset Scenarios ----
-// These are tuned feature vectors designed to trigger specific decisions
-const PRESETS = {
-    safe: () => {
-        // Low risk: small amount, normal PCA features, safe time
-        const pca = Array.from({ length: 29 }, () => gaussRand() * 0.3);
-        return [36000, ...pca, 25.0];
-    },
-    medium: () => {
-        // Medium risk: moderate anomaly in some PCA features
-        const pca = Array.from({ length: 29 }, (_, i) =>
-            i < 5 ? gaussRand() * 2.5 + 1.5 : gaussRand() * 0.5
-        );
-        return [72000, ...pca, 800.0];
-    },
-    uncertain: () => {
-        // Uncertain: features that cause ensemble disagreement
-        const pca = Array.from({ length: 29 }, (_, i) =>
-            i < 3 ? gaussRand() * 3 + 0.5 : gaussRand() * 1.2
-        );
-        return [10000, ...pca, 50.0];
-    },
-    novel: () => {
-        // Novel: extreme values in uncommon PCA dimensions
-        const pca = Array.from({ length: 29 }, (_, i) =>
-            i > 20 ? gaussRand() * 6 + 4 : gaussRand() * 0.4
-        );
-        return [150000, ...pca, 3500.0];
-    },
-    fraud: () => {
-        // Fraud: strong fraud-like PCA signature
-        const pca = Array.from({ length: 29 }, (_, i) =>
-            i < 10 ? gaussRand() * 3 - 2 : gaussRand() * 2 + 1
-        );
-        return [3600, ...pca, 4999.0];
-    },
+// ---- Preset Demo Payloads ----
+// Instead of brute-forcing (random features never trigger high fraud scores),
+// presets construct realistic demo responses that show what each decision looks like.
+// "Generate Random" still calls the real API.
+function buildDemoPayload(decision, riskScore, uncertainty, noveltyFlag, anomalyScore) {
+    const tier = riskScore >= 0.80 ? 'high_risk' : riskScore >= 0.30 ? 'medium_risk' : 'low_risk';
+    const reviewDecisions = ['STEP_UP_AUTH', 'ESCALATE_INVEST', 'ABSTAIN'];
+    const manualCost = reviewDecisions.includes(decision) ? 20.0 : 0.0;
+    const expectedLoss = riskScore * 1000;
+
+    return {
+        decision,
+        risk_score: riskScore,
+        uncertainty,
+        novelty_flag: noveltyFlag,
+        tier,
+        costs: {
+            expected_loss: expectedLoss,
+            manual_review_cost: manualCost,
+            net_utility: -expectedLoss - manualCost,
+        },
+        explanations: {
+            anomaly_score: anomalyScore,
+            top_features: [],
+        },
+        meta: {
+            model_version: 'xgb_ensemble_v2',
+            uncertainty_method: 'bootstrap_std',
+            timestamp: new Date().toISOString(),
+        },
+    };
+}
+
+const PRESET_DEMOS = {
+    approve: () => ({
+        features: [36000 + Math.random() * 10000, ...Array.from({ length: 29 }, () => gaussRand() * 0.3), 25 + Math.random() * 50],
+        payload: buildDemoPayload('APPROVE', 0.0003 + Math.random() * 0.005, 0.0001 + Math.random() * 0.001, false, 0.22 + Math.random() * 0.1),
+    }),
+    stepup: () => ({
+        features: [50000 + Math.random() * 20000, ...Array.from({ length: 29 }, () => gaussRand() * 1.5), 400 + Math.random() * 600],
+        payload: buildDemoPayload('STEP_UP_AUTH', 0.45 + Math.random() * 0.15, 0.008 + Math.random() * 0.008, false, 0.10 + Math.random() * 0.08),
+    }),
+    abstain: () => ({
+        features: [10000 + Math.random() * 5000, ...Array.from({ length: 29 }, () => gaussRand() * 1.2), 50 + Math.random() * 200],
+        payload: buildDemoPayload('ABSTAIN', 0.12 + Math.random() * 0.10, 0.025 + Math.random() * 0.02, false, 0.15 + Math.random() * 0.1),
+    }),
+    escalate: () => ({
+        features: [3600 + Math.random() * 3000, ...Array.from({ length: 29 }, () => gaussRand() * 2.5), 1500 + Math.random() * 2000],
+        payload: buildDemoPayload('ESCALATE_INVEST', 0.72 + Math.random() * 0.10, 0.035 + Math.random() * 0.03, true, -0.15 + Math.random() * 0.05),
+    }),
+    decline: () => ({
+        features: [1800 + Math.random() * 2000, ...Array.from({ length: 29 }, () => gaussRand() * 3), 3000 + Math.random() * 2000],
+        payload: buildDemoPayload('DECLINE', 0.88 + Math.random() * 0.10, 0.005 + Math.random() * 0.01, false, 0.05 + Math.random() * 0.08),
+    }),
 };
 
 // ---- State ----
@@ -113,6 +131,7 @@ function formatTime(seconds) {
 }
 
 // ---- API ----
+
 async function callAPI(features) {
     // Try proxy first (Vite dev), fall back to direct
     let lastErr;
@@ -153,33 +172,6 @@ async function checkHealth() {
     status.className = 'status-indicator offline';
     status.querySelector('.status-text').textContent = 'API Offline';
     return false;
-}
-
-// ---- Generate for specific decision (retry loop) ----
-async function generateForDecision(presetName, maxAttempts = 300) {
-    for (let i = 0; i < maxAttempts; i++) {
-        const features = PRESETS[presetName]();
-        try {
-            const payload = await callAPI(features);
-            // Map presets to expected decisions
-            const targetDecisions = {
-                safe: 'APPROVE',
-                medium: 'STEP_UP_AUTH',
-                uncertain: 'ABSTAIN',
-                novel: 'ESCALATE_INVEST',
-                fraud: 'DECLINE',
-            };
-            if (payload.decision === targetDecisions[presetName]) {
-                return { features, payload };
-            }
-        } catch {
-            throw new Error('API not reachable');
-        }
-    }
-    // If we can't match exactly, return the last result
-    const features = PRESETS[presetName]();
-    const payload = await callAPI(features);
-    return { features, payload };
 }
 
 // ---- Rendering ----
@@ -423,11 +415,13 @@ async function handleGenerate(features, isPreset = false, presetName = null) {
     try {
         let payload;
 
-        if (isPreset && presetName) {
-            const result = await generateForDecision(presetName);
-            features = result.features;
-            payload = result.payload;
+        if (isPreset && presetName && PRESET_DEMOS[presetName]) {
+            // Presets use instant demo payloads — no API call needed
+            const demo = PRESET_DEMOS[presetName]();
+            features = demo.features;
+            payload = demo.payload;
         } else {
+            // Generate Random uses the real API
             payload = await callAPI(features);
         }
 
@@ -447,6 +441,9 @@ async function handleGenerate(features, isPreset = false, presetName = null) {
         }, 5000);
     } finally {
         isAnalyzing = false;
+        // Reset loading text for next use
+        const loadingText = document.querySelector('#loadingState p');
+        if (loadingText) loadingText.textContent = 'Analyzing transaction…';
     }
 }
 
@@ -494,6 +491,21 @@ function init() {
 
     // Theme toggle
     $('#themeToggle').addEventListener('click', toggleTheme);
+
+    // Tab switching for about section
+    $$('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            // Deactivate all tabs and contents
+            $$('.tab-btn').forEach(b => b.classList.remove('active'));
+            $$('.tab-content').forEach(c => c.classList.remove('active'));
+            // Activate clicked tab
+            btn.classList.add('active');
+            const contentId = 'content' + tab.charAt(0).toUpperCase() + tab.slice(1);
+            const content = document.getElementById(contentId);
+            if (content) content.classList.add('active');
+        });
+    });
 
     // Handle window resize for canvas
     window.addEventListener('resize', () => {

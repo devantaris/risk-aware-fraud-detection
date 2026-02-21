@@ -78,3 +78,29 @@ shap.force_plot(
     X_test.iloc[legit_index],
     matplotlib=True
 )
+# ====================================
+# 🔹 Explain One ABSTAIN Case
+# ====================================
+
+# Load Phase 2 decision results
+phase2_results = pd.read_csv("phase2_results.csv")
+
+# Find one ABSTAIN case
+abstain_indices = phase2_results.index[
+    phase2_results["decision"] == "ABSTAIN"
+]
+
+if len(abstain_indices) > 0:
+
+    idx = abstain_indices[0]
+    print("\nExplaining an ABSTAIN case...")
+
+    shap.force_plot(
+        explainer.expected_value,
+        shap_values[idx],
+        X_test.iloc[idx],
+        matplotlib=True
+    )
+
+else:
+    print("No ABSTAIN cases found.")

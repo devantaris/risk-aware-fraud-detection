@@ -168,4 +168,62 @@ http://localhost:8000/docs
 - ✅ Production inference engine
 - ✅ FastAPI wrapper
 - ✅ Dockerized backend
-- ⬜ Public cloud deployment (next step)
+- ✅ Cloud deployment: Vercel (frontend) + Railway (backend)
+
+---
+
+## ☁️ Cloud Deployment (Vercel + Railway)
+
+The Glass Lens frontend is deployed to **Vercel** (static CDN).  
+The FastAPI backend is deployed to **Railway** (Docker container).
+
+### Environment Variables
+
+| Variable | Where | Value |
+|----------|-------|-------|
+| `VITE_API_URL` | Vercel dashboard | Your Railway backend URL, e.g. `https://your-app.up.railway.app` |
+| `ALLOWED_ORIGINS` | Railway dashboard | Your Vercel URL, e.g. `https://your-app.vercel.app` |
+| `PORT` | Railway (auto-injected) | Railway sets this automatically |
+
+---
+
+### Step 1 — Deploy Backend to Railway
+
+1. Push this repo to GitHub (if not already).
+2. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
+3. Select this repository. Railway auto-detects the `Dockerfile`.
+4. In **Variables**, add:
+   ```
+   ALLOWED_ORIGINS=https://your-vercel-app.vercel.app
+   ```
+   *(You can update this after you get the Vercel URL.)*
+5. Railway will build and deploy. Copy the public URL shown in the Railway dashboard (e.g. `https://your-app.up.railway.app`).
+6. Verify: `https://your-app.up.railway.app/health` → should return `{"status":"ok","model":"xgb_ensemble_v2"}`
+
+---
+
+### Step 2 — Deploy Frontend to Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project** → Import your GitHub repo.
+2. Set **Root Directory** to `frontend-glass`.
+3. Vercel auto-detects Vite. Confirm:
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Under **Environment Variables**, add:
+   ```
+   VITE_API_URL = https://your-app.up.railway.app
+   ```
+5. Click **Deploy**. Vercel gives you a URL like `https://your-app.vercel.app`.
+6. Go back to Railway → update `ALLOWED_ORIGINS` to `https://your-app.vercel.app` → redeploy.
+
+---
+
+### Post-Deploy Checklist
+
+- [ ] `GET /health` on Railway URL returns `{"status":"ok"}`
+- [ ] Vercel URL loads Glass Lens UI
+- [ ] "API Connected" indicator is green
+- [ ] "Generate Random" returns a result
+- [ ] All 5 preset buttons work (APPROVE, STEP_UP_AUTH, ESCALATE, DECLINE, ABSTAIN)
+- [ ] Decision Landscape canvas renders
+- [ ] No CORS errors in browser console

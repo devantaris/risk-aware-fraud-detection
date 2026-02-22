@@ -1,0 +1,43 @@
+# Python virtualenv
+venv/
+.venv/
+
+# Large research data files (not needed at runtime)
+creditcard.csv
+creditcard_phase0_clean.csv
+phase2_results.csv
+
+# Research scripts (not needed in Docker image)
+phase0_cleaning.py
+phase0_exploration.py
+phase1_modeling.py
+phase1_xgboost.py
+phase2_uncertainty.py
+phase3_explainability.py
+phase4_outlier.py
+phase5_reliability.py
+
+# Frontend (served separately by Vercel)
+frontend-glass/
+frontend/
+
+# Documentation
+PROJECT_DOCUMENTATION/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.agent/
+
+# OS
+.DS_Store
+Thumbs.db

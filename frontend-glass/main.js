@@ -6,8 +6,12 @@
 import { initLandscape, plotTransaction, clearHistory } from './landscape.js';
 
 // ---- Config ----
-const API_URL = '/api/predict';
-const DIRECT_API_URL = 'http://localhost:8000/predict';
+// In development (npm run dev): VITE_API_URL is undefined → API_BASE is ''
+//   → API_URL becomes '/predict', routed to localhost:8000 via Vite proxy.
+// In production (Vercel): VITE_API_URL = 'https://your-app.up.railway.app'
+//   → API_URL becomes 'https://your-app.up.railway.app/predict' (direct CORS call).
+const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_URL = `${API_BASE}/predict`;
 
 // ---- Decision Metadata ----
 const DECISION_META = {
@@ -133,41 +137,33 @@ function formatTime(seconds) {
 // ---- API ----
 
 async function callAPI(features) {
-    // Try proxy first (Vite dev), fall back to direct
-    let lastErr;
-    for (const url of [API_URL, DIRECT_API_URL]) {
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ features }),
-            });
-            if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
-            const data = await res.json();
-            if (data.error) throw new Error(data.error);
-            return data.result || data;
-        } catch (e) {
-            lastErr = e;
-            continue;
-        }
+    try {
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ features }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        return data.result || data;
+    } catch (e) {
+        throw e || new Error('API not reachable');
     }
-    throw lastErr || new Error('API not reachable');
 }
 
 async function checkHealth() {
     const status = $('#apiStatus');
-    // Try proxy first (avoids CORS), then direct
-    for (const url of ['/api/', 'http://localhost:8000/']) {
-        try {
-            const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
-            if (res.ok) {
-                status.className = 'status-indicator online';
-                status.querySelector('.status-text').textContent = 'API Connected';
-                return true;
-            }
-        } catch {
-            continue;
+    const healthUrl = `${API_BASE}/health`;
+    try {
+        const res = await fetch(healthUrl, { signal: AbortSignal.timeout(5000) });
+        if (res.ok) {
+            status.className = 'status-indicator online';
+            status.querySelector('.status-text').textContent = 'API Connected';
+            return true;
         }
+    } catch {
+        // fall through
     }
     status.className = 'status-indicator offline';
     status.querySelector('.status-text').textContent = 'API Offline';
@@ -429,11 +425,11 @@ async function handleGenerate(features, isPreset = false, presetName = null) {
         renderAnalysis(features, payload);
     } catch (err) {
         showState('empty');
-        // Show inline error
         const empty = $('#emptyState');
         empty.querySelector('h2').textContent = 'Connection Error';
+        const target = API_BASE || 'the backend';
         empty.querySelector('p').innerHTML =
-            `Could not reach the API at <code>localhost:8000</code>.<br/>Make sure the FastAPI backend is running.`;
+            `Could not reach the API at <code>${target}</code>.<br/>Make sure the backend is running and <code>VITE_API_URL</code> is set correctly.`;
         setTimeout(() => {
             empty.querySelector('h2').textContent = 'Transaction X-Ray';
             empty.querySelector('p').innerHTML =

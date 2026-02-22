@@ -488,19 +488,34 @@ function init() {
     // Theme toggle
     $('#themeToggle').addEventListener('click', toggleTheme);
 
-    // Tab switching for about section
+    // Tab hover-reveal for about section
+    const tabCloseTimers = {};
     $$('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            // Deactivate all tabs and contents
+        const tab = btn.dataset.tab;
+        const contentId = 'content' + tab.charAt(0).toUpperCase() + tab.slice(1);
+        const content = document.getElementById(contentId);
+        if (!content) return;
+
+        const openTab = () => {
+            clearTimeout(tabCloseTimers[tab]);
+            // Close all others
             $$('.tab-btn').forEach(b => b.classList.remove('active'));
             $$('.tab-content').forEach(c => c.classList.remove('active'));
-            // Activate clicked tab
             btn.classList.add('active');
-            const contentId = 'content' + tab.charAt(0).toUpperCase() + tab.slice(1);
-            const content = document.getElementById(contentId);
-            if (content) content.classList.add('active');
-        });
+            content.classList.add('active');
+        };
+
+        const closeTab = () => {
+            tabCloseTimers[tab] = setTimeout(() => {
+                btn.classList.remove('active');
+                content.classList.remove('active');
+            }, 120); // small delay so mouse can reach content panel
+        };
+
+        btn.addEventListener('mouseenter', openTab);
+        btn.addEventListener('mouseleave', closeTab);
+        content.addEventListener('mouseenter', () => clearTimeout(tabCloseTimers[tab]));
+        content.addEventListener('mouseleave', closeTab);
     });
 
     // Handle window resize for canvas

@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Risk-Aware Fraud System — Project Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg: #0d0d1a;
+            --surface: #13132a;
+            --surface2: #1a1a35;
+            --border: #2a2a50;
+            --accent: #6c63ff;
+            --accent2: #00d4ff;
+            --text: #e0e0f0;
+            --muted: #8888aa;
+            --green: #00e5a0;
+            --red: #ff4d6d;
+            --yellow: #ffd166;
+            --sidebar-w: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        #sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #sidebar-header h2 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent2);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        #sidebar-header p {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .nav-item:hover {
+            background: var(--surface2);
+            border-left-color: var(--accent);
+        }
+
+        .nav-item.active {
+            background: rgba(108, 99, 255, 0.15);
+            border-left-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .nav-label {
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .nav-type {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+            flex-shrink: 0;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .type-md {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--accent2);
+        }
+
+        .type-mmd {
+            background: rgba(108, 99, 255, 0.2);
+            color: var(--accent);
+        }
+
+        /* MAIN */
+        #main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 0;
+        }
+
+        #topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(13, 13, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 50;
+        }
+
+        #topbar h1 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        #topbar .badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-md {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--accent2);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .badge-mmd {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        /* CONTENT SECTION */
+        .doc-section {
+            display: none;
+            padding: 40px;
+            max-width: 1100px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .doc-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* MERMAID DIAGRAM PAGE */
+        .mermaid-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            overflow-x: auto;
+        }
+
+        .mermaid-container .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 28px;
+        }
+
+        /* MULTI-DIAGRAM PAGE */
+        .diagram-block {
+            margin-bottom: 40px;
+        }
+
+        .diagram-block h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent2);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* MARKDOWN STYLING */
+        .md-content h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 8px;
+        }
+
+        .md-content h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent2);
+            margin: 36px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .md-content h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 24px 0 10px;
+        }
+
+        .md-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #aaa;
+            margin: 16px 0 8px;
+        }
+
+        .md-content p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text);
+            margin: 0 0 14px;
+        }
+
+        .md-content a {
+            color: var(--accent2);
+            text-decoration: none;
+        }
+
+        .md-content a:hover {
+            text-decoration: underline;
+        }
+
+        .md-content ul,
+        .md-content ol {
+            padding-left: 24px;
+            margin: 0 0 14px;
+        }
+
+        .md-content li {
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 4px;
+        }
+
+        .md-content code {
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 12px;
+            background: rgba(108, 99, 255, 0.15);
+            border: 1px solid rgba(108, 99, 255, 0.25);
+            border-radius: 4px;
+            padding: 1px 6px;
+            color: var(--accent2);
+        }
+
+        .md-content pre {
+            background: #0a0a18;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 0 0 20px;
+        }
+
+        .md-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--green);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .md-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 24px;
+            font-size: 13px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .md-content th {
+            background: var(--surface2);
+            color: var(--accent2);
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .md-content td {
+            padding: 9px 14px;
+            border-top: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: top;
+        }
+
+        .md-content tr:hover td {
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        .md-content blockquote {
+            border-left: 3px solid var(--accent);
+            background: rgba(108, 99, 255, 0.08);
+            border-radius: 0 8px 8px 0;
+            padding: 12px 16px;
+            margin: 0 0 16px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .md-content hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 28px 0;
+        }
+
+        .md-content strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .md-content em {
+            color: var(--yellow);
+        }
+
+        /* HOME SPLASH */
+        #home {
+            padding: 60px 40px;
+            max-width: 900px;
+        }
+
+        #home h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        #home p {
+            font-size: 15px;
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .file-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-card:hover {
+            border-color: var(--accent);
+            background: var(--surface2);
+            transform: translateY(-2px);
+        }
+
+        .file-card .icon {
+            font-size: 24px;
+        }
+
+        .file-card .name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .file-card .desc {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .file-card .ft {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .file-card.md .ft {
+            color: var(--accent2);
+        }
+
+        .file-card.mmd .ft {
+            color: var(--accent);
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* mermaid svg overrides */
+        .mermaid svg {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+        <div id="sidebar-header">
+            <h2>Risk Aware Fraud System</h2>
+            <p>Project Documentation</p>
+        </div>
+        <div class="nav-item active" onclick="showSection('home')">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Overview</span>
+        </div>
+        <div class="nav-item" onclick="showSection('beginner')">
+            <span class="nav-icon">🎓</span>
+            <span class="nav-label">Beginner Guide</span>
+            <span class="nav-type type-md">MD</span>
+        </div>
+        <div class="nav-item" onclick="showSection('bible')">
+            <span class="nav-icon">📖</span>
+            <span class="nav-label">Project Bible</span>
+            <span class="nav-type type-md">MD</span>
+        </div>
+        <div class="nav-item" onclick="showSection('metrics')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Metrics Tables</span>
+            <span class="nav-type type-md">MD</span>
+        </div>
+        <div class="nav-item" onclick="showSection('architecture')">
+            <span class="nav-icon">🏗️</span>
+            <span class="nav-label">Architecture Graph</span>
+            <span class="nav-type type-mmd">MMD</span>
+        </div>
+        <div class="nav-item" onclick="showSection('dependency')">
+            <span class="nav-icon">🔗</span>
+            <span class="nav-label">Dependency Graph</span>
+            <span class="nav-type type-mmd">MMD</span>
+        </div>
+        <div class="nav-item" onclick="showSection('runtime')">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">Runtime Flow</span>
+            <span class="nav-type type-mmd">MMD</span>
+        </div>
+        <div class="nav-item" onclick="showSection('sequence')">
+            <span class="nav-icon">🔄</span>
+            <span class="nav-label">Sequence Diagrams</span>
+            <span class="nav-type type-mmd">MMD</span>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <div id="main">
+        <div id="topbar">
+            <h1 id="topbar-title">Overview</h1>
+            <span id="topbar-badge" class="badge"></span>
+        </div>
+
+        <!-- HOME -->
+        <div id="home" class="active">
+            <h1>Project Documentation</h1>
+            <p>Risk-Aware Fraud Transaction Decision System — complete technical documentation including architecture
+                diagrams, metrics, dependency graphs, sequence flows, and guides.</p>
+            <div class="file-grid">
+                <div class="file-card md" onclick="showSection('beginner')">
+                    <div class="icon">🎓</div>
+                    <div class="ft">Markdown</div>
+                    <div class="name">BEGINNER_GUIDE.md</div>
+                    <div class="desc">Layperson intro to the 3 detection axes, 5 decision states, and system
+                        architecture</div>
+                </div>
+                <div class="file-card md" onclick="showSection('bible')">
+                    <div class="icon">📖</div>
+                    <div class="ft">Markdown</div>
+                    <div class="name">PROJECT_BIBLE.md</div>
+                    <div class="desc">Complete technical deep-dive into every file, function, threshold and design
+                        decision</div>
+                </div>
+                <div class="file-card md" onclick="showSection('metrics')">
+                    <div class="icon">📊</div>
+                    <div class="ft">Markdown</div>
+                    <div class="name">metrics_tables.md</div>
+                    <div class="desc">All numeric constants, thresholds, hyperparameters, and port numbers with source
+                        citations</div>
+                </div>
+                <div class="file-card mmd" onclick="showSection('architecture')">
+                    <div class="icon">🏗️</div>
+                    <div class="ft">Mermaid</div>
+                    <div class="name">architecture_graph.mmd</div>
+                    <div class="desc">Full system graph: Client → API → Engine → Artifacts → Research pipeline</div>
+                </div>
+                <div class="file-card mmd" onclick="showSection('dependency')">
+                    <div class="icon">🔗</div>
+                    <div class="ft">Mermaid</div>
+                    <div class="name">dependency_graph.mmd</div>
+                    <div class="desc">All internal module and external package dependency edges</div>
+                </div>
+                <div class="file-card mmd" onclick="showSection('runtime')">
+                    <div class="icon">⚡</div>
+                    <div class="ft">Mermaid</div>
+                    <div class="name">runtime_flow_graph.mmd</div>
+                    <div class="desc">Startup call stacks, POST /predict call chain, Streamlit & Glass Lens flows</div>
+                </div>
+                <div class="file-card mmd" onclick="showSection('sequence')">
+                    <div class="icon">🔄</div>
+                    <div class="ft">Mermaid</div>
+                    <div class="name">sequence_diagrams.mmd</div>
+                    <div class="desc">4 UML sequence diagrams: API, Streamlit, Glass Lens, and Docker deployment</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BEGINNER GUIDE -->
+        <div id="beginner" class="doc-section">
+            <div class="md-content" id="beginner-content"></div>
+        </div>
+
+        <!-- PROJECT BIBLE -->
+        <div id="bible" class="doc-section">
+            <div class="md-content" id="bible-content"></div>
+        </div>
+
+        <!-- METRICS -->
+        <div id="metrics" class="doc-section">
+            <div class="md-content" id="metrics-content"></div>
+        </div>
+
+        <!-- ARCHITECTURE -->
+        <div id="architecture" class="doc-section">
+            <div class="section-title">Architecture Graph</div>
+            <div class="section-subtitle">architecture_graph.mmd — Full system component topology</div>
+            <div class="mermaid-container">
+                <div class="mermaid" id="arch-diagram"></div>
+            </div>
+        </div>
+
+        <!-- DEPENDENCY -->
+        <div id="dependency" class="doc-section">
+            <div class="section-title">Dependency Graph</div>
+            <div class="section-subtitle">dependency_graph.mmd — Internal module and external package dependencies</div>
+            <div class="mermaid-container">
+                <div class="mermaid" id="dep-diagram"></div>
+            </div>
+        </div>
+
+        <!-- RUNTIME -->
+        <div id="runtime" class="doc-section">
+            <div class="section-title">Runtime Flow Graph</div>
+            <div class="section-subtitle">runtime_flow_graph.mmd — Startup call stacks and request processing flows
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid" id="runtime-diagram"></div>
+            </div>
+        </div>
+
+        <!-- SEQUENCE -->
+        <div id="sequence" class="doc-section">
+            <div class="section-title">Sequence Diagrams</div>
+            <div class="section-subtitle">sequence_diagrams.mmd — 4 UML sequence diagrams</div>
+
+            <div class="diagram-block">
+                <h3>Diagram 1 — Primary API Prediction Request Flow</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid" id="seq1-diagram"></div>
+                </div>
+            </div>
+
+            <div class="diagram-block">
+                <h3>Diagram 2 — Streamlit Frontend Flow</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid" id="seq2-diagram"></div>
+                </div>
+            </div>
+
+            <div class="diagram-block">
+                <h3>Diagram 2b — Glass Lens Frontend Flow</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid" id="seq2b-diagram"></div>
+                </div>
+            </div>
+
+            <div class="diagram-block">
+                <h3>Diagram 3 — Model Training / Research Pipeline</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid" id="seq3-diagram"></div>
+                </div>
+            </div>
+
+            <div class="diagram-block">
+                <h3>Diagram 4 — Docker Deployment Flow</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid" id="seq4-diagram"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Markdown content (inline) ──────────────────────────────────────────────
+
+        const BEGINNER_MD = `# 🎓 Beginner's Guide to the Risk-Aware Fraud Decision System
+
+> **Who is this for?** Anyone new to the project — students, new developers, or curious people who want to understand how this fraud detection system works from the ground up.
+
+---
+
+## 📌 What Does This System Do?
+
+Imagine you're a bank. Thousands of credit card transactions happen every second. Some are legit, some are fraudulent. You need a system that can:
+
+1. **Detect fraud** — Figure out which transactions look suspicious
+2. **Say how confident it is** — Does the system really know, or is it guessing?
+3. **Handle unknowns** — What if a transaction looks completely different from anything it's seen before?
+4. **Make smart decisions** — Not just "fraud" or "not fraud", but nuanced actions like "block it", "let it through", "ask for more verification", or "send it to a human analyst"
+
+This system does all four.
+
+---
+
+## 🧠 The Three Detection Axes
+
+Instead of a single fraud/not-fraud score, this system evaluates every transaction along **three independent axes**:
+
+### Axis 1: Risk Score (How fraudulent does it look?)
+
+An **ensemble of 5 XGBoost models** each independently predicts "what's the probability this is fraud?" We take the **average** of all 5 predictions.
+
+\`\`\`
+Risk Score = average probability from 5 models
+Range: 0.0 (definitely safe) → 1.0 (definitely fraud)
+\`\`\`
+
+**Tiers:**
+
+| Tier | Score Range | Meaning |
+|------|-------------|---------|
+| 🟢 Low Risk | < 0.30 | Looks safe |
+| 🟡 Medium Risk | 0.30 – 0.79 | Suspicious |
+| 🔴 High Risk | ≥ 0.80 | Strong fraud indicators |
+
+### Axis 2: Uncertainty (How much do the models agree?)
+
+Since we have 5 models, we can measure how much they **disagree**. If all 5 say "fraud", we're confident. If 3 say "fraud" and 2 say "safe", we're uncertain.
+
+\`\`\`
+Uncertainty = standard deviation of the 5 predictions
+Threshold: 0.02
+\`\`\`
+
+- **Low uncertainty** (< 0.02) → Models agree → System is confident
+- **High uncertainty** (≥ 0.02) → Models disagree → System should be cautious
+
+### Axis 3: Novelty (Has the system seen this before?)
+
+An **Isolation Forest** model was trained on legitimate transactions only. When a new transaction comes in, it checks: "Does this look like the normal transactions I was trained on?"
+
+\`\`\`
+Anomaly Score from Isolation Forest
+Threshold: -0.08
+\`\`\`
+
+- **Positive score** → Looks normal
+- **Negative score below threshold** → Novel pattern (never seen anything like this)
+
+---
+
+## 🚦 The 5 Decision States
+
+Based on the three axes, every transaction is routed to one of **5 decisions**:
+
+| Decision | What happens | Analogy |
+|----------|-------------|---------|
+| **APPROVE** | Transaction goes through automatically | Cashier accepts your card instantly |
+| **STEP UP AUTH** | Ask for extra verification | "Please enter your OTP" |
+| **ABSTAIN** | System isn't sure — hold for human review | "We're not confident enough to decide" |
+| **ESCALATE INVESTIGATION** | Send to a human fraud analyst | "Let an expert check" |
+| **DECLINE** | Block the transaction automatically | "Sorry, your card has been declined" |
+
+---
+
+## 💰 Cost Simulation
+
+| Metric | Formula | Meaning |
+|--------|---------|---------|
+| Expected Loss | \`risk_score × $1,000\` | How much money we'd lose if this is fraud |
+| Manual Review Cost | \`$20\` if review needed, \`$0\` if auto-decided | Cost of a human analyst |
+| Net Utility | \`−expected_loss − review_cost\` | Total financial impact |
+
+---
+
+## ❓ Common Questions
+
+**Q: Why 5 models instead of 1?**
+A: One model gives you a prediction but no way to know if it's confident. Five models let us measure disagreement (uncertainty), which is critical for knowing when to escalate.
+
+**Q: What if the system has never seen a type of transaction before?**
+A: The Isolation Forest catches this. It was trained only on normal transactions, so anything truly different gets flagged as "novel" and escalated.
+
+**Q: Why not just block everything suspicious?**
+A: False positives are expensive! Blocking a legitimate $5,000 transaction costs the bank customer trust and revenue.
+`;
+
+        const METRICS_MD = `# Metrics Tables – Risk-Aware Fraud Transaction Decision System
+
+All values are extracted directly from source code.
+
+---
+
+## 1. Decision Engine Thresholds
+
+| Parameter | Value | Type | Source File | Line |
+|-----------|-------|------|-------------|------|
+| \`decline_threshold\` | \`0.80\` | Risk threshold | \`backend/engine/decision_engine.py\` | 49 |
+| \`escalate_threshold\` | \`0.60\` | Risk threshold | \`backend/engine/decision_engine.py\` | 50 |
+| \`auth_threshold\` | \`0.30\` | Risk threshold | \`backend/engine/decision_engine.py\` | 51 |
+| \`uncertainty_threshold\` | \`0.02\` | Uncertainty threshold | \`backend/engine/decision_engine.py\` | 54 |
+| \`anomaly_threshold\` | \`-0.08\` | Anomaly score threshold | \`backend/engine/decision_engine.py\` | 57 |
+
+---
+
+## 2. Cost Configuration (Production Engine)
+
+| Parameter | Value | Unit | Source File | Line |
+|-----------|-------|------|-------------|------|
+| \`fraud_cost\` | \`1000\` | USD per fraud event | \`backend/engine/decision_engine.py\` | 60 |
+| \`review_cost\` | \`20\` | USD per manual review | \`backend/engine/decision_engine.py\` | 61 |
+| \`false_positive_cost\` | \`50\` | USD per false positive | \`backend/engine/decision_engine.py\` | 62 |
+
+---
+
+## 4. XGBoost Hyperparameters
+
+### Phase 2 – Bootstrap Ensemble (phase2_uncertainty.py)
+
+| Parameter | Value | Source File | Line |
+|-----------|-------|-------------|------|
+| \`n_models\` (ensemble size) | \`5\` | \`phase2_uncertainty.py\` | 35 |
+| \`n_estimators\` | \`300\` | \`phase2_uncertainty.py\` | 49 |
+| \`max_depth\` | \`4\` | \`phase2_uncertainty.py\` | 50 |
+| \`learning_rate\` | \`0.05\` | \`phase2_uncertainty.py\` | 51 |
+| Calibration method | \`isotonic\` | \`phase2_uncertainty.py\` | 61 |
+| Calibration CV folds | \`3\` | \`phase2_uncertainty.py\` | 62 |
+
+---
+
+## 6. Isolation Forest Hyperparameters
+
+| Parameter | Value | Source File | Line |
+|-----------|-------|-------------|------|
+| \`n_estimators\` | \`200\` | \`phase4_outlier.py\` | 33 |
+| \`contamination\` | \`0.001\` | \`phase4_outlier.py\` | 34 |
+| \`random_state\` | \`42\` | \`phase4_outlier.py\` | 35 |
+| \`n_jobs\` | \`-1\` (all cores) | \`phase4_outlier.py\` | 36 |
+
+---
+
+## 9. Port Numbers
+
+| Service | Port | Protocol |
+|---------|------|----------|
+| FastAPI (uvicorn) | \`8000\` | HTTP |
+| Streamlit (default) | \`8501\` | HTTP |
+| Glass Lens (Vite dev) | \`5173\` | HTTP |
+
+---
+
+## 10. Dataset Metrics
+
+| Metric | Value |
+|--------|-------|
+| Total transactions | \`284,807\` |
+| Fraud rate | \`0.172%\` |
+| Raw features | \`31\` |
+| ROC-AUC | ≈ \`0.986\` |
+
+---
+
+## 11. Model Validation Metrics
+
+| Metric | Value |
+|--------|-------|
+| ROC-AUC | ≈ \`0.986\` |
+| Calibration | Reliability curve verified |
+| Brier score | Improved post-calibration |
+
+---
+
+## 15. Dependency Versions (requirements.txt)
+
+| Package | Notes |
+|---------|-------|
+| \`fastapi\` | Not pinned — latest at install time |
+| \`uvicorn\` | Not pinned |
+| \`numpy\` | Not pinned |
+| \`scikit-learn\` | Not pinned |
+| \`xgboost\` | \`3.2.0\` (installed in venv) |
+| \`joblib\` | Not pinned |
+| \`pydantic\` | Not pinned |
+
+> **NOTE**: No version pinning in \`requirements.txt\`. This is a reproducibility risk.
+`;
+
+        // ── Mermaid diagram content (inline) ──────────────────────────────────────
+
+        const ARCH_MMD = `graph TB
+    subgraph CLIENT_LAYER["Client / UI Layer"]
+        direction LR
+        GLASS_LENS["Glass Lens Frontend<br/>(frontend-glass/)<br/>Vite + Vanilla JS<br/>Port: 5173"]
+        STREAMLIT["Streamlit Frontend<br/>(frontend/app.py)<br/>Port: 8501"]
+        SWAGGER["Swagger UI<br/>/docs"]
+        EXTERNAL_CLIENT["External HTTP Client"]
+    end
+    subgraph API_LAYER["API Layer – FastAPI"]
+        direction TB
+        FASTAPI["FastAPI Application<br/>(api/main.py)<br/>Port: 8000"]
+        PREDICT_ENDPOINT["POST /predict<br/>Transaction Evaluation"]
+        PYDANTIC["TransactionInput<br/>Pydantic Model<br/>(list of 31 floats)"]
+    end
+    subgraph ENGINE_LAYER["Decision Engine Layer"]
+        direction TB
+        ENGINE["DecisionEngine<br/>(backend/engine/decision_engine.py)"]
+        subgraph ENSEMBLE_SUBSYSTEM["Ensemble Prediction"]
+            ENSEMBLE["XGBoost Bootstrap Ensemble<br/>(5 calibrated models)"]
+            PREDICT_PROBA["predict_proba()<br/>→ mean_prob, std_prob"]
+        end
+        subgraph ANOMALY_SUBSYSTEM["Anomaly Detection"]
+            ISOLATION["Isolation Forest"]
+            ANOMALY_SCORE["anomaly_score()<br/>→ score, novelty_flag"]
+        end
+        subgraph ROUTING_SUBSYSTEM["5-State Routing Logic"]
+            DECIDE["decide()<br/>2-Axis: Risk × Uncertainty"]
+            APPROVE["APPROVE"]
+            STEP_UP["STEP_UP_AUTH"]
+            ESCALATE["ESCALATE_INVEST"]
+            DECLINE["DECLINE"]
+            ABSTAIN["ABSTAIN"]
+        end
+        COST["estimate_cost()<br/>→ expected_loss, manual_cost, net_utility"]
+        TIER["tier()<br/>→ high_risk / medium_risk / low_risk"]
+    end
+    subgraph ARTIFACT_LAYER["Serialized Model Artifacts"]
+        XGB_PKL["xgb_ensemble.pkl<br/>(6.8 MB – 5 models)"]
+        ISO_PKL["isolation_forest.pkl<br/>(1.8 MB)"]
+    end
+    subgraph DOCKER_LAYER["Deployment Layer"]
+        DOCKERFILE["Dockerfile<br/>Base: python:3.11<br/>CMD: uvicorn api.main:app"]
+    end
+    GLASS_LENS -->|"HTTP POST /predict"| FASTAPI
+    STREAMLIT -->|"HTTP POST /predict"| FASTAPI
+    SWAGGER -->|"HTTP"| FASTAPI
+    EXTERNAL_CLIENT -->|"HTTP"| FASTAPI
+    FASTAPI --> PREDICT_ENDPOINT
+    PREDICT_ENDPOINT --> PYDANTIC
+    PYDANTIC -->|"np.array reshape(1,-1)"| ENGINE
+    ENGINE --> ENSEMBLE
+    ENSEMBLE --> PREDICT_PROBA
+    ENGINE --> ISOLATION
+    ISOLATION --> ANOMALY_SCORE
+    PREDICT_PROBA -->|"prob, uncertainty"| DECIDE
+    ANOMALY_SCORE -->|"novelty_flag"| DECIDE
+    DECIDE --> APPROVE
+    DECIDE --> STEP_UP
+    DECIDE --> ESCALATE
+    DECIDE --> DECLINE
+    DECIDE --> ABSTAIN
+    ENGINE --> COST
+    ENGINE --> TIER
+    XGB_PKL -->|"joblib.load()"| ENSEMBLE
+    ISO_PKL -->|"joblib.load()"| ISOLATION
+    DOCKERFILE -->|"builds & runs"| FASTAPI`;
+
+        const DEP_MMD = `graph TB
+    subgraph INTERNAL_MODULES["Internal Module Dependencies"]
+        API_MAIN["api/main.py"]
+        DECISION_ENGINE["backend/engine/decision_engine.py"]
+        LOGGER["backend/config/logger.py"]
+        TEST_ENGINE["backend/test_engine.py"]
+        FRONTEND_APP["frontend/app.py"]
+        GLASS_MAIN["frontend-glass/main.js"]
+        GLASS_LANDSCAPE["frontend-glass/landscape.js"]
+    end
+    subgraph EXTERNAL_PACKAGES["External Package Dependencies"]
+        subgraph CORE_DEPS["Core Runtime (requirements.txt)"]
+            FASTAPI_PKG["fastapi"]
+            UVICORN_PKG["uvicorn"]
+            NUMPY_PKG["numpy"]
+            SKLEARN_PKG["scikit-learn"]
+            XGBOOST_PKG["xgboost"]
+            JOBLIB_PKG["joblib"]
+            PYDANTIC_PKG["pydantic"]
+        end
+        subgraph GLASS_DEPS["Glass Lens Dependencies (npm)"]
+            VITE_PKG["vite (dev server + bundler)"]
+            FETCH_API["Fetch API (browser built-in)"]
+            CANVAS_API["Canvas 2D API (browser built-in)"]
+        end
+    end
+    subgraph SERIALIZED_ARTIFACTS["Serialized Artifacts"]
+        XGB_ARTIFACT["artifacts/xgb_ensemble.pkl"]
+        ISO_ARTIFACT["artifacts/isolation_forest.pkl"]
+    end
+    STDLIB["Python stdlib (sys, os, datetime)"]
+    API_MAIN -->|"from fastapi import FastAPI"| FASTAPI_PKG
+    API_MAIN -->|"from pydantic import BaseModel"| PYDANTIC_PKG
+    API_MAIN -->|"import numpy as np"| NUMPY_PKG
+    API_MAIN -->|"import sys, os"| STDLIB
+    API_MAIN -->|"from backend.engine..."| DECISION_ENGINE
+    DECISION_ENGINE -->|"import joblib"| JOBLIB_PKG
+    DECISION_ENGINE -->|"import numpy as np"| NUMPY_PKG
+    DECISION_ENGINE -->|"import os, datetime"| STDLIB
+    DECISION_ENGINE -->|"joblib.load()"| XGB_ARTIFACT
+    DECISION_ENGINE -->|"joblib.load()"| ISO_ARTIFACT
+    LOGGER -->|"import logging"| STDLIB
+    TEST_ENGINE -->|"import numpy as np"| NUMPY_PKG
+    TEST_ENGINE -->|"from backend.engine..."| DECISION_ENGINE
+    FRONTEND_APP -->|"import streamlit"| STREAMLIT_PKG["streamlit"]
+    FRONTEND_APP -->|"import requests"| REQUESTS_PKG["requests"]
+    GLASS_MAIN -->|"import { initLandscape }"| GLASS_LANDSCAPE
+    GLASS_MAIN -->|"fetch('/api/predict')"| FETCH_API
+    GLASS_LANDSCAPE -->|"canvas.getContext('2d')"| CANVAS_API
+    GLASS_MAIN -->|"dev server + build"| VITE_PKG`;
+
+        const RUNTIME_MMD = `graph TB
+    subgraph STARTUP_FLOW["Application Startup Call Stack"]
+        S1["uvicorn loads api.main module"]
+        S2["sys.path.append(PROJECT_ROOT)"]
+        S3["from backend.engine.decision_engine import DecisionEngine"]
+        S4["engine = DecisionEngine()"]
+        S5["__init__: Resolve project_root via os.path"]
+        S6["__init__: joblib.load(xgb_ensemble.pkl)"]
+        S7["__init__: joblib.load(isolation_forest.pkl)"]
+        S8["__init__: Set thresholds<br/>(decline=0.80, escalate=0.60, auth=0.30)"]
+        S9["__init__: Set cost config<br/>(fraud=1000, review=20, false_pos=50)"]
+        S10["FastAPI app ready on 0.0.0.0:8000"]
+    end
+    subgraph PREDICT_FLOW["POST /predict – Full Call Stack"]
+        R1["predict(txn: TransactionInput)"]
+        R2["Validate: len(txn.features) == 31"]
+        R3["np.array(txn.features).reshape(1, -1)"]
+        R4["engine.evaluate_transaction(X)"]
+        subgraph PREDICT_PROBA_FLOW["predict_proba(X)"]
+            PP2["Loop: for model in self.models (5x)"]
+            PP3["model.predict_proba(X)[:, 1]"]
+            PP6["mean_prob = np.mean(probs)"]
+            PP7["std_prob = np.std(probs)"]
+            PP8["Return (mean_prob, std_prob)"]
+        end
+        subgraph ANOMALY_FLOW["anomaly_score(X)"]
+            A1{"self.anomaly_model is None?"}
+            A2["Return (None, False)"]
+            A3["score = anomaly_model.decision_function(X)[0]"]
+            A5["Return (score, novelty_flag)"]
+        end
+        subgraph DECIDE_FLOW["decide(prob, uncertainty, novelty_flag)"]
+            D1{"prob >= 0.80?"}
+            D2["Return DECLINE"]
+            D3{"prob >= 0.60 AND uncertainty >= 0.02?"}
+            D4["Return ESCALATE_INVEST"]
+            D6["Return STEP_UP_AUTH"]
+            D8["Return ABSTAIN"]
+            D11["Return APPROVE"]
+        end
+        R5["Assemble result dict"]
+        R6["Return JSON response"]
+    end
+    subgraph GLASS_LENS_FLOW["Glass Lens Runtime Flow"]
+        GL1["Vite dev server starts on :5173"]
+        GL2["Browser loads index.html"]
+        GL3["main.js: init() called on DOMContentLoaded"]
+        GL4["initLandscape(canvas)"]
+        GL5["checkHealth() – GET /api/"]
+        GL6["User clicks button"]
+        GL9["callAPI(features) – POST /api/predict via proxy"]
+        GL11["Parse JSON response"]
+        GL12["animateLayers() – sequential reveal"]
+        GL13["renderAnalysis()"]
+        GL14["plotTransaction() – update canvas"]
+        GL15["addToHistory()"]
+    end
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9 --> S10
+    S10 -.->|"incoming request"| R1
+    R1 --> R2 --> R3 --> R4
+    R4 --> PP2 --> PP3 --> PP6 --> PP7 --> PP8
+    R4 --> A1
+    A1 -->|"Yes"| A2
+    A1 -->|"No"| A3 --> A5
+    PP8 --> D1
+    D1 -->|"Yes"| D2
+    D1 -->|"No"| D3
+    D3 -->|"Yes"| D4
+    D3 -->|"No"| D6
+    D2 --> R5
+    D4 --> R5
+    D6 --> R5
+    D8 --> R5
+    D11 --> R5
+    R5 --> R6
+    GL1 --> GL2 --> GL3 --> GL4 --> GL5
+    GL3 --> GL6 --> GL9 --> GL11 --> GL12 --> GL13 --> GL14 --> GL15`;
+
+        const SEQ1_MMD = `sequenceDiagram
+    autonumber
+    participant Client as Client / Glass Lens / Streamlit UI
+    participant FastAPI as FastAPI (api/main.py)
+    participant Pydantic as TransactionInput Validator
+    participant Engine as DecisionEngine
+    participant XGB as XGBoost Ensemble (5 models)
+    participant ISO as Isolation Forest
+    participant CostSim as Cost Simulator
+    participant TierCalc as Tier Calculator
+    Client->>+FastAPI: POST /predict { "features": [31 floats] }
+    FastAPI->>+Pydantic: Validate TransactionInput
+    alt Feature count != 31
+        Pydantic-->>FastAPI: Validation passes
+        FastAPI-->>Client: { "error": "Expected 31 features" }
+    else Feature count == 31
+        Pydantic-->>-FastAPI: Valid TransactionInput
+        FastAPI->>FastAPI: np.array(features).reshape(1, -1)
+        FastAPI->>+Engine: evaluate_transaction(X)
+        Engine->>+XGB: predict_proba(X)
+        loop For each of 5 bootstrap models
+            XGB->>XGB: model.predict_proba(X)[:, 1]
+        end
+        XGB->>XGB: mean = np.mean(probs)
+        XGB->>XGB: std = np.std(probs)
+        XGB-->>-Engine: (mean_prob, std_prob)
+        Engine->>+ISO: anomaly_score(X)
+        ISO->>ISO: decision_function(X)[0]
+        ISO-->>-Engine: (score, novelty_flag)
+        Engine->>Engine: decide(prob, uncertainty, novelty_flag)
+        Engine->>+CostSim: estimate_cost(prob, decision)
+        CostSim-->>-Engine: (expected_loss, manual_cost, net_utility)
+        Engine->>+TierCalc: tier(prob)
+        TierCalc-->>-Engine: "high_risk" / "medium_risk" / "low_risk"
+        Engine-->>-FastAPI: Full result dict
+        FastAPI-->>Client: JSON response
+    end`;
+
+        const SEQ2_MMD = `sequenceDiagram
+    autonumber
+    participant User as End User
+    participant Streamlit as Streamlit App (frontend/app.py)
+    participant Generator as Feature Generator
+    participant API as FastAPI API (localhost:8000)
+    User->>+Streamlit: Click "Generate {DECISION}" button
+    Streamlit->>Streamlit: Enter spinner state
+    loop Up to 500 attempts
+        Streamlit->>+Generator: generate_random_transaction()
+        Generator->>Generator: time = uniform(0, 172800)
+        Generator->>Generator: amount = uniform(1, 5000)
+        Generator->>Generator: pca_features = normal(0, 1, 28)
+        Generator-->>-Streamlit: features (list of 31 floats)
+        Streamlit->>+API: POST /predict { "features": [...] }
+        API-->>-Streamlit: JSON response
+        alt response.decision == target_decision
+            Streamlit->>Streamlit: Store in session_state
+            Note over Streamlit: Break loop
+        else response.decision != target_decision
+            Note over Streamlit: Continue loop
+        end
+    end
+    alt Match found
+        Streamlit-->>User: Display Transaction Summary
+        Streamlit-->>-User: Display Full Engine Output
+    else No match in 500 attempts
+        Streamlit-->>-User: Warning: "Could not generate example"
+    end`;
+
+        const SEQ2B_MMD = `sequenceDiagram
+    autonumber
+    participant User as End User (Browser)
+    participant GlassLens as Glass Lens Frontend (frontend-glass/)
+    participant Vite as Vite Dev Proxy (:5173/api -> :8000)
+    participant API as FastAPI API (localhost:8000)
+    User->>+GlassLens: Click "Generate Random" or preset button
+    alt Preset scenario
+        loop Up to 300 attempts
+            GlassLens->>GlassLens: Generate tuned feature vector (31 floats)
+            GlassLens->>+Vite: POST /api/predict { features: [...] }
+            Vite->>+API: POST /predict (proxied)
+            API-->>-Vite: JSON response
+            Vite-->>-GlassLens: JSON response
+            alt response.decision == target
+                Note over GlassLens: Match found — break loop
+            else No match
+                Note over GlassLens: Retry with new features
+            end
+        end
+    else Random transaction
+        GlassLens->>GlassLens: generateRandomTransaction() -> 31 floats
+        GlassLens->>+Vite: POST /api/predict { features: [...] }
+        Vite->>+API: POST /predict (proxied)
+        API-->>-Vite: JSON response
+        Vite-->>-GlassLens: JSON response
+    end
+    GlassLens->>GlassLens: animateLayers() — sequential reveal
+    GlassLens-->>User: Layer 1: Ensemble Risk
+    GlassLens-->>User: Layer 2: Uncertainty
+    GlassLens-->>User: Layer 3: Novelty
+    GlassLens-->>User: Verdict Card
+    GlassLens->>GlassLens: plotTransaction() -> update Decision Landscape canvas
+    GlassLens->>-GlassLens: addToHistory() -> update sidebar list`;
+
+        const SEQ3_MMD = `sequenceDiagram
+    autonumber
+    participant Dev as Developer / Researcher
+    participant P0C as phase0_cleaning.py
+    participant P1X as phase1_xgboost.py
+    participant P2U as phase2_uncertainty.py
+    participant P3E as phase3_explainability.py
+    participant P4O as phase4_outlier.py
+    participant P5R as phase5_reliability.py
+    participant Disk as File System
+    Dev->>+P0C: Run cleaning
+    P0C->>Disk: Read creditcard.csv
+    P0C->>P0C: Sort by Time, create hour + delta_time
+    P0C->>Disk: Save creditcard_phase0_clean.csv
+    P0C-->>-Dev: "Phase 0 cleaning complete"
+    Dev->>+P1X: Run calibrated XGBoost
+    P1X->>Disk: Read creditcard_phase0_clean.csv
+    P1X->>P1X: XGBClassifier(n_est=300, depth=4, lr=0.05)
+    P1X->>P1X: CalibratedClassifierCV(isotonic, cv=3)
+    P1X-->>-Dev: ROC-AUC + optimal threshold
+    Dev->>+P2U: Run bootstrap ensemble + cost simulation
+    P2U->>Disk: Read creditcard_phase0_clean.csv
+    loop 5 bootstrap iterations (seed 0-4)
+        P2U->>P2U: Bootstrap sample + XGBClassifier + Calibrate
+    end
+    P2U->>Disk: Save artifacts/xgb_ensemble.pkl
+    P2U->>Disk: Save phase2_results.csv
+    P2U-->>-Dev: Decision distribution + cost analysis
+    Dev->>+P4O: Run Isolation Forest training
+    P4O->>P4O: IsolationForest(n_est=200, contam=0.001)
+    P4O->>P4O: Train ONLY on legitimate transactions
+    P4O->>Disk: Save artifacts/isolation_forest.pkl
+    P4O-->>-Dev: Anomaly stats + detection rate
+    Dev->>+P5R: Run reliability check
+    P5R->>P5R: Compare Brier scores (raw vs calibrated)
+    P5R-->>-Dev: Reliability curve`;
+
+        const SEQ4_MMD = `sequenceDiagram
+    autonumber
+    participant Dev as Developer
+    participant Docker as Docker Engine
+    participant Image as Docker Image (fraud-api)
+    participant Container as Running Container
+    participant Uvicorn as Uvicorn Server
+    Dev->>+Docker: docker build -t fraud-api .
+    Docker->>Docker: FROM python:3.11
+    Docker->>Docker: WORKDIR /app
+    Docker->>Docker: COPY requirements.txt .
+    Docker->>Docker: pip install --no-cache-dir -r requirements.txt
+    Docker->>Docker: COPY . .
+    Docker-->>-Dev: Image built
+    Dev->>+Docker: docker run -p 8000:8000 fraud-api
+    Docker->>+Container: Start container
+    Container->>+Uvicorn: python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
+    Uvicorn->>Uvicorn: Import api.main
+    Uvicorn->>Uvicorn: Instantiate DecisionEngine()
+    Uvicorn->>Uvicorn: Load xgb_ensemble.pkl (5 models)
+    Uvicorn->>Uvicorn: Load isolation_forest.pkl
+    Uvicorn-->>-Container: Server ready on 0.0.0.0:8000
+    Container-->>-Docker: Container running
+    Docker-->>-Dev: Mapped to localhost:8000`;
+
+        // ── Navigation ─────────────────────────────────────────────────────────────
+
+        const SECTION_META = {
+            home: { title: 'Overview', badge: '', badgeClass: '' },
+            beginner: { title: 'Beginner Guide', badge: '.md', badgeClass: 'badge-md' },
+            bible: { title: 'Project Bible', badge: '.md', badgeClass: 'badge-md' },
+            metrics: { title: 'Metrics Tables', badge: '.md', badgeClass: 'badge-md' },
+            architecture: { title: 'Architecture Graph', badge: '.mmd', badgeClass: 'badge-mmd' },
+            dependency: { title: 'Dependency Graph', badge: '.mmd', badgeClass: 'badge-mmd' },
+            runtime: { title: 'Runtime Flow Graph', badge: '.mmd', badgeClass: 'badge-mmd' },
+            sequence: { title: 'Sequence Diagrams', badge: '.mmd', badgeClass: 'badge-mmd' },
+        };
+
+        let currentSection = 'home';
+        let mermaidRendered = new Set();
+
+        function showSection(id) {
+            // Hide current
+            const prev = document.querySelector('.doc-section.active, #home.active');
+            if (prev) prev.classList.remove('active');
+
+            // Show new
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+
+            // Update sidebar
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const items = document.querySelectorAll('.nav-item');
+            const keys = Object.keys(SECTION_META);
+            const idx = keys.indexOf(id);
+            if (items[idx]) items[idx].classList.add('active');
+
+            // Update topbar
+            const meta = SECTION_META[id] || {};
+            document.getElementById('topbar-title').textContent = meta.title || id;
+            const badge = document.getElementById('topbar-badge');
+            badge.textContent = meta.badge || '';
+            badge.className = 'badge ' + (meta.badgeClass || '');
+
+            currentSection = id;
+            renderMermaidForSection(id);
+        }
+
+        function renderMermaidForSection(id) {
+            if (mermaidRendered.has(id)) return;
+            mermaidRendered.add(id);
+
+            const diagramMap = {
+                architecture: [{ el: 'arch-diagram', code: ARCH_MMD }],
+                dependency: [{ el: 'dep-diagram', code: DEP_MMD }],
+                runtime: [{ el: 'runtime-diagram', code: RUNTIME_MMD }],
+                sequence: [
+                    { el: 'seq1-diagram', code: SEQ1_MMD },
+                    { el: 'seq2-diagram', code: SEQ2_MMD },
+                    { el: 'seq2b-diagram', code: SEQ2B_MMD },
+                    { el: 'seq3-diagram', code: SEQ3_MMD },
+                    { el: 'seq4-diagram', code: SEQ4_MMD },
+                ],
+            };
+
+            const diagrams = diagramMap[id];
+            if (!diagrams) return;
+
+            diagrams.forEach(({ el, code }) => {
+                const container = document.getElementById(el);
+                if (!container) return;
+                container.removeAttribute('data-processed');
+                container.textContent = code;
+            });
+
+            setTimeout(() => {
+                mermaid.run({ nodes: diagrams.map(d => document.getElementById(d.el)) });
+            }, 50);
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────────
+
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+                background: '#13132a',
+                primaryColor: '#1a1a35',
+                primaryTextColor: '#e0e0f0',
+                primaryBorderColor: '#2a2a50',
+                lineColor: '#6c63ff',
+                secondaryColor: '#0d0d1a',
+                tertiaryColor: '#1a1a35',
+                edgeLabelBackground: '#0d0d1a',
+                fontFamily: 'Segoe UI, system-ui, sans-serif',
+                fontSize: '13px',
+            },
+            securityLevel: 'loose',
+        });
+
+        // Render markdown sections
+        document.getElementById('beginner-content').innerHTML = marked.parse(BEGINNER_MD);
+        document.getElementById('metrics-content').innerHTML = marked.parse(METRICS_MD);
+
+        // PROJECT_BIBLE is large — show a summary note pointing to the raw file
+        document.getElementById('bible-content').innerHTML = marked.parse(`# 📖 Project Bible
+
+> The full **PROJECT_BIBLE.md** (53 KB) is available in the \`PROJECT_DOCUMENTATION\` folder. Open it directly in VS Code or any markdown viewer for the complete technical deep-dive.
+
+## What it contains
+
+| Section | Description |
+|---------|-------------|
+| **System Overview** | Goals, constraints, non-goals |
+| **File Inventory** | Every file with size, purpose, and key functions |
+| **Decision Engine Deep-Dive** | All thresholds, routing logic, cost simulation |
+| **API Contract** | Full request/response schema with examples |
+| **Research Pipeline** | Phase-by-phase breakdown of model training |
+| **Known Issues** | Dead code (logger.py), empty directories, threshold drift |
+| **Reproducibility Notes** | How to re-run each phase |
+| **Glossary** | Definitions of all domain terms |
+
+Open [PROJECT_BIBLE.md](./PROJECT_BIBLE.md) in a markdown-capable viewer for the full content.
+`);
+    </script>
+</body>
+
+</html>

@@ -314,14 +314,116 @@ body {
   border-bottom-color: #6366f1;
 }
 
+/* ---- DOCS BANNER ---- */
+.docs-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.docs-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.docs-banner:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+}
+
+.docs-banner:hover::before {
+  opacity: 1;
+}
+
+.docs-banner-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.docs-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.docs-banner-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docs-banner-sub {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.docs-banner-arrow {
+  font-size: 1rem;
+  color: rgba(99, 102, 241, 0.7);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.docs-banner:hover .docs-banner-arrow {
+  transform: translateX(3px);
+}
+
+/* ---- ABOUT TABS — hover reveal (JS-driven via mouseenter/mouseleave) ---- */
 .tab-content {
   display: none;
   padding: var(--space-lg) 0;
+  transition: opacity 200ms var(--ease-out);
 }
 
 .tab-content.active {
   display: block;
+  animation: tabFadeIn 180ms var(--ease-out) both;
 }
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover highlight on tab buttons (styling only — open/close handled by JS) */
+.tab-btn:hover {
+  color: var(--text-primary);
+  border-bottom-color: rgba(99, 102, 241, 0.5);
+}
+
+.tab-btn.active {
+  color: var(--text-primary);
+  border-bottom-color: #6366f1;
+}
+
 
 /* Info Grid (for Technical & Output tabs) */
 .info-grid {

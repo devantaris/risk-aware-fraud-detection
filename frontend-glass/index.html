@@ -69,7 +69,7 @@
   <section class="info-strip" id="aboutSection">
     <div class="info-strip-inner">
       <div class="tab-header">
-        <button class="tab-btn active" data-tab="technical" id="tabTechnical">System Overview (Technical)</button>
+        <button class="tab-btn" data-tab="technical" id="tabTechnical">System Overview (Technical)</button>
         <button class="tab-btn" data-tab="simple" id="tabSimple">What This Means (Simple)</button>
         <button class="tab-btn" data-tab="intended" id="tabIntended">Intended Use</button>
         <button class="tab-btn" data-tab="howto" id="tabHowto">How to Use</button>
@@ -77,7 +77,7 @@
       </div>
 
       <!-- Tab 1: Technical -->
-      <div class="tab-content active" id="contentTechnical">
+      <div class="tab-content" id="contentTechnical">
         <div class="info-grid">
           <div class="info-item">
             <span class="info-label">Dataset</span>
@@ -194,6 +194,17 @@
     <aside class="panel panel-controls">
       <div class="panel-section">
         <h2 class="panel-title">Transaction Input</h2>
+
+        <!-- Docs Banner -->
+        <a href="/docs.html" target="_blank" rel="noopener" class="docs-banner" id="docsBanner">
+          <div class="docs-banner-icon">📖</div>
+          <div class="docs-banner-text">
+            <span class="docs-banner-title">Project Bible &amp; Documentation</span>
+            <span class="docs-banner-sub">Architecture, metrics, sequence diagrams, full system breakdown — all in one
+              place</span>
+          </div>
+          <div class="docs-banner-arrow">→</div>
+        </a>
 
         <button class="btn btn-primary btn-generate" id="btnGenerate">
           <span class="btn-icon">⚡</span> Generate Random

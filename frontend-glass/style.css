@@ -389,7 +389,101 @@ body {
   transform: translateX(3px);
 }
 
+/* ========================================================
+   DOCS CTA STRIP
+   ======================================================== */
+.docs-cta-strip {
+  border-bottom: 1px solid var(--divider);
+  background: var(--bg-secondary);
+  padding: var(--space-md) var(--space-xl);
+  display: flex;
+  justify-content: center;
+}
+
+.docs-cta-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.06));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--transition-fast);
+  max-width: 760px;
+  width: 100%;
+}
+
+.docs-cta-inner:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.1));
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.docs-cta-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.docs-cta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.docs-cta-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.docs-cta-sub {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+}
+
+.docs-cta-arrow {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #818cf8;
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-pill);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.docs-cta-inner:hover .docs-cta-arrow {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateX(2px);
+}
+
+/* ---- Last Result Badge ---- */
+.last-result-badge {
+  display: none;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.15);
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.last-result-badge.visible {
+  display: inline-block;
+}
+
 /* ---- ABOUT TABS — hover reveal (JS-driven via mouseenter/mouseleave) ---- */
+
 .tab-content {
   display: none;
   padding: var(--space-lg) 0;

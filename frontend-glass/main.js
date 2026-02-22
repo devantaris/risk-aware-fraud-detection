@@ -304,6 +304,24 @@ function renderAnalysis(features, payload) {
     // Plot on landscape
     plotTransaction(risk, uncertainty, decision);
 
+    // Update last-result badge on Generate button
+    const badge = $('#lastResultBadge');
+    if (badge) {
+        const BADGE_COLORS = {
+            APPROVE: '#34d399', ABSTAIN: '#a78bfa', STEP_UP_AUTH: '#fbbf24',
+            ESCALATE_INVEST: '#fb923c', DECLINE: '#f87171'
+        };
+        const shortLabel = {
+            APPROVE: 'APPROVE', ABSTAIN: 'ABSTAIN', STEP_UP_AUTH: 'STEP-UP',
+            ESCALATE_INVEST: 'ESCALATE', DECLINE: 'DECLINE'
+        }[decision] || decision;
+        badge.textContent = shortLabel;
+        badge.style.background = (BADGE_COLORS[decision] || '#818cf8') + '33';
+        badge.style.color = BADGE_COLORS[decision] || '#818cf8';
+        badge.style.border = `1px solid ${(BADGE_COLORS[decision] || '#818cf8')}55`;
+        badge.classList.add('visible');
+    }
+
     // Animate layers sequentially
     animateLayers();
 

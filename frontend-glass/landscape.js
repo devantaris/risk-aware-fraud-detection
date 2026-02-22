@@ -48,7 +48,7 @@ const RISK_MIN = 0, RISK_MAX = 1;
 const UNC_MIN = 0, UNC_MAX = 0.10;
 
 // Margins
-const MARGIN = { top: 12, right: 12, bottom: 32, left: 42 };
+const MARGIN = { top: 16, right: 16, bottom: 40, left: 52 };
 
 function getPlotArea() {
     const w = canvas.width - MARGIN.left - MARGIN.right;
@@ -160,7 +160,7 @@ function drawRegions() {
 
 function drawAxes() {
     const { x, y, w, h } = getPlotArea();
-    const textColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
+    const textColor = isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.60)';
     const lineColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
 
     ctx.strokeStyle = lineColor;
@@ -168,7 +168,7 @@ function drawAxes() {
 
     // X-axis labels
     ctx.fillStyle = textColor;
-    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.font = '11px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -185,17 +185,18 @@ function drawAxes() {
 
     // X-axis title
     ctx.fillStyle = textColor;
-    ctx.font = '10px "Inter", sans-serif';
-    ctx.fillText('Risk Score →', x + w / 2, y + h + 20);
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.fillText('Risk Score →', x + w / 2, y + h + 24);
 
     // Y-axis labels
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = textColor;
 
     for (let u = 0; u <= 0.10; u += 0.02) {
         const py = uncToY(u);
-        ctx.fillText(u.toFixed(2), x - 6, py);
+        ctx.fillText(u.toFixed(2), x - 8, py);
 
         // Grid line
         ctx.beginPath();
@@ -206,36 +207,87 @@ function drawAxes() {
 
     // Y-axis title
     ctx.save();
-    ctx.translate(12, y + h / 2);
+    ctx.translate(14, y + h / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.textAlign = 'center';
-    ctx.font = '10px "Inter", sans-serif';
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.fillStyle = textColor;
     ctx.fillText('Uncertainty ↑', 0, 0);
     ctx.restore();
 }
 
+function drawZoneLabels() {
+    const theme = isDark ? 'dark' : 'light';
+
+    // Label definitions: [decision key, display name, center x, center y in data coords]
+    const labels = [
+        { key: 'APPROVE', name: 'APPROVE', rx: [0, T_AUTH], uy: [0, U_THRESHOLD] },
+        { key: 'ABSTAIN', name: 'ABSTAIN', rx: [0, T_AUTH], uy: [U_THRESHOLD, UNC_MAX] },
+        { key: 'STEP_UP_AUTH', name: 'STEP-UP', rx: [T_AUTH, T_ESCALATE], uy: [0, UNC_MAX] },
+        { key: 'ESCALATE_INVEST', name: 'ESCALATE', rx: [T_ESCALATE, RISK_MAX], uy: [U_THRESHOLD, UNC_MAX] },
+        { key: 'DECLINE', name: 'DECLINE', rx: [T_DECLINE, RISK_MAX], uy: [0, U_THRESHOLD] },
+    ];
+
+    labels.forEach(({ key, name, rx, uy }) => {
+        const cx = (riskToX(rx[0]) + riskToX(rx[1])) / 2;
+        const cy = (uncToY(uy[0]) + uncToY(uy[1])) / 2;
+
+        const dotColor = DOT_COLORS[key] || '#818cf8';
+
+        ctx.save();
+        ctx.font = 'bold 9px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = dotColor;
+        ctx.globalAlpha = isDark ? 0.55 : 0.60;
+        ctx.fillText(name, cx, cy);
+        ctx.restore();
+    });
+}
+
 function drawThresholdLines() {
-    const { y, h } = getPlotArea();
-    const color = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+    const { x, y, w, h } = getPlotArea();
+    const color = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+    const labelColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
 
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
 
-    // Vertical threshold lines (risk)
+    // Vertical threshold lines (risk) with value labels
     [T_AUTH, T_ESCALATE, T_DECLINE].forEach(t => {
+        const px = riskToX(t);
         ctx.beginPath();
-        ctx.moveTo(riskToX(t), y);
-        ctx.lineTo(riskToX(t), y + h);
+        ctx.moveTo(px, y);
+        ctx.lineTo(px, y + h);
         ctx.stroke();
+
+        // Label at top
+        ctx.setLineDash([]);
+        ctx.save();
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = labelColor;
+        ctx.fillText(t.toFixed(2), px, y - 2);
+        ctx.restore();
+        ctx.setLineDash([4, 4]);
     });
 
-    // Horizontal threshold (uncertainty)
-    const { x, w } = getPlotArea();
+    // Horizontal threshold (uncertainty) with value label
     ctx.beginPath();
     ctx.moveTo(x, uncToY(U_THRESHOLD));
     ctx.lineTo(x + w, uncToY(U_THRESHOLD));
     ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.save();
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = labelColor;
+    ctx.fillText('σ ' + U_THRESHOLD.toFixed(2), x + 2, uncToY(U_THRESHOLD) - 2);
+    ctx.restore();
 
     ctx.setLineDash([]);
 }
@@ -256,24 +308,33 @@ function drawPoints() {
         ctx.globalAlpha = 1;
     });
 
-    // Current point (glowing)
+    // Current point (glowing, with double ring)
     if (currentPoint) {
         const color = DOT_COLORS[currentPoint.decision] || '#818cf8';
         const px = riskToX(currentPoint.risk);
         const py = uncToY(Math.min(currentPoint.uncertainty, UNC_MAX));
 
-        // Glow
+        // Outer soft glow
         ctx.beginPath();
-        ctx.arc(px, py, 12, 0, Math.PI * 2);
-        const grad = ctx.createRadialGradient(px, py, 2, px, py, 12);
-        grad.addColorStop(0, color);
+        ctx.arc(px, py, 18, 0, Math.PI * 2);
+        const grad = ctx.createRadialGradient(px, py, 3, px, py, 18);
+        grad.addColorStop(0, color + 'aa');
         grad.addColorStop(1, 'transparent');
         ctx.fillStyle = grad;
         ctx.fill();
 
+        // Outer ring
+        ctx.beginPath();
+        ctx.arc(px, py, 10, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.35;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
         // Dot
         ctx.beginPath();
-        ctx.arc(px, py, 5, 0, Math.PI * 2);
+        ctx.arc(px, py, 5.5, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
         ctx.strokeStyle = '#fff';
@@ -281,6 +342,7 @@ function drawPoints() {
         ctx.stroke();
     }
 }
+
 
 function render() {
     isDark = document.documentElement.getAttribute('data-theme') !== 'light';
@@ -298,6 +360,7 @@ function render() {
 
     drawRegions();
     drawAxes();
+    drawZoneLabels();
     drawThresholdLines();
     drawPoints();
 }

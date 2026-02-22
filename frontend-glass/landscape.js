@@ -48,7 +48,7 @@ const RISK_MIN = 0, RISK_MAX = 1;
 const UNC_MIN = 0, UNC_MAX = 0.10;
 
 // Margins
-const MARGIN = { top: 16, right: 16, bottom: 40, left: 52 };
+const MARGIN = { top: 16, right: 16, bottom: 48, left: 68 };
 
 function getPlotArea() {
     const w = canvas.width - MARGIN.left - MARGIN.right;

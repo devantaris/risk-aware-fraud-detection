@@ -14,7 +14,7 @@ from backend.engine.decision_engine import DecisionEngine
 app = FastAPI(title="Risk-Aware Fraud Decision API")
 
 # ── CORS ──────────────────────────────────────────────────────────────────
-# Allow all origins — this is a public research/demo API with no auth.
+# Public research/demo API — allow all origins.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,17 +23,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # ── Engine (loaded once at startup) ───────────────────────────────────────
 engine = DecisionEngine()
 
 
-# ── Models ────────────────────────────────────────────────────────────────
 class TransactionInput(BaseModel):
     features: list[float]  # must be length 31
 
 
-# ── Endpoints ─────────────────────────────────────────────────────────────
 @app.get("/")
 def root():
     return {"message": "Fraud Decision API is running"}
@@ -41,7 +38,6 @@ def root():
 
 @app.get("/health")
 def health():
-    """Health check endpoint used by Railway and the Glass Lens status indicator."""
     return {"status": "ok", "model": "xgb_ensemble_v2"}
 
 
@@ -49,7 +45,5 @@ def health():
 def predict(txn: TransactionInput):
     if len(txn.features) != 31:
         return {"error": "Expected 31 features"}
-
     features = np.array(txn.features).reshape(1, -1)
-    result = engine.evaluate_transaction(features)
-    return result
+    return engine.evaluate_transaction(features)

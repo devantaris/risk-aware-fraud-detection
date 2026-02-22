@@ -14,24 +14,15 @@ from backend.engine.decision_engine import DecisionEngine
 app = FastAPI(title="Risk-Aware Fraud Decision API")
 
 # ── CORS ──────────────────────────────────────────────────────────────────
-# ALLOWED_ORIGINS: comma-separated exact origins from Railway env var.
-# allow_origin_regex always permits any *.vercel.app URL (production + preview)
-# and localhost for local development.
-_raw = os.environ.get("ALLOWED_ORIGINS", "")
-_explicit = [o.strip() for o in _raw.split(",") if o.strip()] or ["*"]
-
+# Allow all origins — this is a public research/demo API with no auth.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_explicit,
-    allow_origin_regex=(
-        r"https://[a-zA-Z0-9\-]+\.vercel\.app"
-        r"|https?://localhost(:\d+)?"
-        r"|https?://127\.0\.0\.1(:\d+)?"
-    ),
+    allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ── Engine (loaded once at startup) ───────────────────────────────────────
 engine = DecisionEngine()

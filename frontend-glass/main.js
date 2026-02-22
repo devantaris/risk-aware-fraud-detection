@@ -6,12 +6,10 @@
 import { initLandscape, plotTransaction, clearHistory } from './landscape.js';
 
 // ---- Config ----
-// In development (npm run dev): VITE_API_URL is undefined → API_BASE is ''
-//   → API_URL becomes '/predict', routed to localhost:8000 via Vite proxy.
-// In production (Vercel): VITE_API_URL = 'https://your-app.up.railway.app'
-//   → API_URL becomes 'https://your-app.up.railway.app/predict' (direct CORS call).
-const API_BASE = import.meta.env.VITE_API_URL || '';
+// In production, always points to Railway. In dev, VITE_API_URL overrides this.
+const API_BASE = import.meta.env.VITE_API_URL || 'https://risk-aware-fraud-detection-production.up.railway.app';
 const API_URL = `${API_BASE}/predict`;
+
 
 // ---- Decision Metadata ----
 const DECISION_META = {
@@ -143,12 +141,18 @@ async function callAPI(features) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ features }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+            // Server responded but with an error status
+            let detail = `HTTP ${res.status}`;
+            try { const d = await res.json(); detail = d.detail || d.error || detail; } catch { }
+            throw new Error(`SERVER_ERROR: ${detail}`);
+        }
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         return data.result || data;
     } catch (e) {
-        throw e || new Error('API not reachable');
+        console.error('[callAPI] Error:', e.message, '| URL:', API_URL);
+        throw e;
     }
 }
 
@@ -444,15 +448,19 @@ async function handleGenerate(features, isPreset = false, presetName = null) {
     } catch (err) {
         showState('empty');
         const empty = $('#emptyState');
-        empty.querySelector('h2').textContent = 'Connection Error';
+        const msg = err?.message || '';
+        const isCors = err instanceof TypeError;
+        const isServer = msg.startsWith('SERVER_ERROR:');
+        empty.querySelector('h2').textContent = isCors ? 'CORS / Network Error' : isServer ? 'Backend Error' : 'Connection Error';
+        const detail = isServer ? msg.replace('SERVER_ERROR: ', '') : isCors ? 'Browser blocked the request (CORS). Check console.' : msg;
         const target = API_BASE || 'the backend';
         empty.querySelector('p').innerHTML =
-            `Could not reach the API at <code>${target}</code>.<br/>Make sure the backend is running and <code>VITE_API_URL</code> is set correctly.`;
+            `<code>${detail}</code><br/><small>Endpoint: ${target}/predict — check browser console (F12) for details.</small>`;
         setTimeout(() => {
             empty.querySelector('h2').textContent = 'Transaction X-Ray';
             empty.querySelector('p').innerHTML =
                 'Generate or select a transaction to see it pass through<br/>the three detection layers.';
-        }, 5000);
+        }, 8000);
     } finally {
         isAnalyzing = false;
         // Reset loading text for next use
